@@ -49,7 +49,7 @@ ob_start();
                                    class="form-control"
                                    id="loginEmail"
                                    name="email"
-                                   value="<?= htmlspecialchars($email ?? '') ?>"
+                                   value="<?= htmlspecialchars($email ?? $rememberEmail ?? '') ?>"
                                    placeholder="Nhập email"
                                    required
                                    autofocus />

@@ -17,10 +17,14 @@ class AuthController
         // Mặc định redirect về trang home
         $redirect = $_GET['redirect'] ?? BASE_URL . 'home';
 
+        // Lấy email đã ghi nhớ (nếu có)
+        $rememberEmail = $_COOKIE['remember_email'] ?? '';
+
         // Hiển thị view login
         view('auth.login', [
             'title' => 'Đăng nhập',
             'redirect' => $redirect,
+            'rememberEmail' => $rememberEmail,
         ]);
     }
 
@@ -34,7 +38,7 @@ class AuthController
         }
 
         // Lấy dữ liệu từ form
-        $email = $_POST['email'] ?? '';
+        $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         // Mặc định redirect về trang home sau khi đăng nhập
         $redirect = $_POST['redirect'] ?? BASE_URL . 'home';
@@ -61,18 +65,69 @@ class AuthController
             return;
         }
 
-        // Tạo user mẫu để đăng nhập (không kiểm tra database)
-        // Chỉ để demo giao diện
+        // Lấy kết nối DB
+        $pdo = getDB();
+        if (!$pdo) {
+            $errors[] = 'Không thể kết nối đến cơ sở dữ liệu. Vui lòng thử lại sau.';
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Tìm user theo email
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE email = :email LIMIT 1');
+        $stmt->execute(['email' => $email]);
+        $userRow = $stmt->fetch();
+
+        // Kiểm tra tồn tại user và mật khẩu
+        if (!$userRow || !password_verify($password, $userRow['password'])) {
+            $errors[] = 'Email hoặc mật khẩu không chính xác';
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Kiểm tra trạng thái tài khoản
+        if ((int)($userRow['status'] ?? 0) !== 1) {
+            $errors[] = 'Tài khoản của bạn đang bị khóa. Vui lòng liên hệ quản trị viên.';
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Tạo đối tượng User từ dữ liệu DB
         $user = new User([
-            'id' => 1,
-            'name' => 'Người dùng mẫu',
-            'email' => $email,
-            'role' => 'huong_dan_vien',
-            'status' => 1,
+            'id'         => $userRow['id'],
+            'name'       => $userRow['name'],
+            'email'      => $userRow['email'],
+            'role'       => $userRow['role'],
+            'status'     => $userRow['status'],
+            'created_at' => $userRow['created_at'] ?? null,
+            'update_at'  => $userRow['update_at'] ?? null,
         ]);
 
         // Đăng nhập thành công: lưu vào session
         loginUser($user);
+
+        // Ghi nhớ email nếu người dùng chọn "Ghi nhớ tài khoản"
+        if (!empty($_POST['remember_me'])) {
+            setcookie('remember_email', $user->email, time() + 30 * 24 * 60 * 60, '/');
+        } else {
+            // Nếu bỏ chọn thì xóa cookie
+            setcookie('remember_email', '', time() - 3600, '/');
+        }
 
         // Chuyển hướng về trang được yêu cầu hoặc trang chủ
         header('Location: ' . $redirect);
