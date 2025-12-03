@@ -105,7 +105,7 @@ $content = ob_get_clean();
 
 // Hiển thị layout auth với nội dung
 view('layouts.AuthLayout', [
-    'title' => $title ?? 'Đăng nhậphh',
+    'title' => $title ?? 'Đăng nhập',
     'content' => $content,
     'extraJs' => ['js/login.js'],
 ]);
