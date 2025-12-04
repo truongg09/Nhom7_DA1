@@ -29,6 +29,9 @@ match ($act) {
     // Trang home (cho người đã đăng nhập)
     'home' => $homeController->home(),
 
+    // Trang dashboard báo cáo & thống kê
+    'dashboard' => $homeController->dashboard(),
+
     // Đường dẫn đăng nhập, đăng xuất
     'login' => $authController->login(),
     'check-login' => $authController->checkLogin(),

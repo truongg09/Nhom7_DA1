@@ -29,7 +29,7 @@
         data-accordion="false"
       >
         <li class="nav-item">
-          <a href="<?= BASE_URL . 'home' ?>" class="nav-link">
+          <a href="<?= BASE_URL . 'dashboard' ?>" class="nav-link">
             <i class="nav-icon bi bi-speedometer"></i>
             <p>Dashboard</p>
           </a>
