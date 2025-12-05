@@ -1,5 +1,10 @@
 <?php
 
+// Bật hiển thị lỗi trong môi trường phát triển (có thể tắt sau khi sửa xong)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Nạp cấu hình chung của ứng dụng
 $config = require __DIR__ . '/config/config.php';
 
@@ -11,12 +16,14 @@ require_once __DIR__ . '/src/helpers/database.php'; // Helper kết nối databa
 require_once __DIR__ . '/src/models/User.php';
 require_once __DIR__ . '/src/models/Tour.php';
 require_once __DIR__ . '/src/models/Category.php';
+require_once __DIR__ . '/src/models/Booking.php';
 
 // Nạp các file chứa controller
 require_once __DIR__ . '/src/controllers/HomeController.php';
 require_once __DIR__ . '/src/controllers/AuthController.php';
 require_once __DIR__ . '/src/controllers/TourController.php';
 require_once __DIR__ . '/src/controllers/CategoryController.php';
+require_once __DIR__ . '/src/controllers/BookingController.php';
 
 // Khởi tạo các controller không yêu cầu quyền đặc biệt
 $homeController = new HomeController();
@@ -55,6 +62,15 @@ match ($act) {
     'category-edit' => (new CategoryController())->edit(),
     'category-update' => (new CategoryController())->update(),
     'category-delete' => (new CategoryController())->destroy(),
+
+    // Quản lý booking
+    'bookings' => (new BookingController())->index(),
+    'booking-show' => (new BookingController())->show(),
+    'booking-create' => (new BookingController())->create(),
+    'booking-store' => (new BookingController())->store(),
+    'booking-edit' => (new BookingController())->edit(),
+    'booking-update' => (new BookingController())->update(),
+    'booking-delete' => (new BookingController())->destroy(),
 
     // Đường dẫn không tồn tại
     default => $homeController->notFound(),

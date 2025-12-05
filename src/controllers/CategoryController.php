@@ -143,7 +143,8 @@ class CategoryController
 
     private function redirectWithMessage(string $route, string $message, string $type = 'success'): void
     {
-        $separator = str_contains($route, '?') ? '&' : '?';
+        // Không dùng str_contains để tương thích với các phiên bản PHP < 8
+        $separator = (strpos($route, '?') !== false) ? '&' : '?';
         $url = BASE_URL . $route . $separator . 'message=' . urlencode($message) . '&type=' . $type;
         header('Location: ' . $url);
         exit;

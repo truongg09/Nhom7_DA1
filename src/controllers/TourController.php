@@ -42,6 +42,9 @@ class TourController
             return;
         }
 
+        // Set images thành empty string
+        $data['fields']['images'] = '';
+
         Tour::create($data['fields']);
         $this->redirectWithMessage('tours', 'Thêm tour thành công');
     }
@@ -83,7 +86,9 @@ class TourController
     public function update(): void
     {
         $id = $_POST['id'] ?? null;
-        if (!$id || !Tour::find($id)) {
+        $existingTour = $id ? Tour::find($id) : null;
+
+        if (!$id || !$existingTour) {
             $this->redirectWithMessage('tours', 'Tour không tồn tại', 'danger');
             return;
         }
@@ -100,6 +105,9 @@ class TourController
             return;
         }
 
+        // Giữ nguyên ảnh cũ (không xử lý upload nữa)
+        $data['fields']['images'] = $existingTour['images'] ?? '';
+
         Tour::update($id, $data['fields']);
         $this->redirectWithMessage('tours', 'Cập nhật tour thành công');
     }
@@ -107,13 +115,29 @@ class TourController
     public function destroy(): void
     {
         $id = $_POST['id'] ?? null;
-        if ($id && Tour::find($id)) {
-            Tour::delete($id);
-            $this->redirectWithMessage('tours', 'Xóa tour thành công');
+        if (!$id) {
+            $this->redirectWithMessage('tours', 'Tour không tồn tại', 'danger');
             return;
         }
 
-        $this->redirectWithMessage('tours', 'Tour không tồn tại', 'danger');
+        $tour = Tour::find($id);
+        if (!$tour) {
+            $this->redirectWithMessage('tours', 'Tour không tồn tại', 'danger');
+            return;
+        }
+
+        // Kiểm tra xem tour có bookings đang tham chiếu không
+        if (Tour::hasBookings($id)) {
+            $this->redirectWithMessage('tours', 'Không thể xóa tour này vì đang có đơn đặt tour liên quan. Vui lòng xóa các đơn đặt trước.', 'danger');
+            return;
+        }
+
+        // Thử xóa tour
+        if (Tour::delete($id)) {
+            $this->redirectWithMessage('tours', 'Xóa tour thành công');
+        } else {
+            $this->redirectWithMessage('tours', 'Không thể xóa tour này. Có thể tour đang được sử dụng ở nơi khác.', 'danger');
+        }
     }
 
     private function validate(array $input): array
@@ -122,14 +146,27 @@ class TourController
             'name' => trim($input['name'] ?? ''),
             'description' => trim($input['description'] ?? ''),
             'category_id' => trim($input['category_id'] ?? ''),
+            // Các trường dưới đây nhập vào là TEXT thuần, nhưng trong DB vẫn lưu JSON để không vi phạm ràng buộc
             'schedule' => trim($input['schedule'] ?? ''),
-            'images' => trim($input['images'] ?? ''),
             'prices' => trim($input['prices'] ?? ''),
             'policies' => trim($input['policies'] ?? ''),
             'suppliers' => trim($input['suppliers'] ?? ''),
             'price' => trim($input['price'] ?? ''),
             'status' => isset($input['status']) ? (int) $input['status'] : 1,
         ];
+
+        // Chuyển các trường text thành JSON đơn giản dạng {"raw": "..."}
+        // để tương thích với các ràng buộc JSON trong CSDL,
+        // đồng thời view/form đã có logic bóc tách "raw" nên người dùng chỉ thấy TEXT.
+        foreach (['schedule', 'prices', 'policies', 'suppliers'] as $jsonField) {
+            $raw = $fields[$jsonField];
+            if ($raw === '') {
+                // Lưu object rỗng {} thay vì chuỗi rỗng để tránh lỗi JSON_TYPE
+                $fields[$jsonField] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
+            } else {
+                $fields[$jsonField] = json_encode(['raw' => $raw], JSON_UNESCAPED_UNICODE);
+            }
+        }
 
         $errors = [];
 
@@ -149,7 +186,8 @@ class TourController
 
     private function redirectWithMessage(string $route, string $message, string $type = 'success'): void
     {
-        $separator = str_contains($route, '?') ? '&' : '?';
+        // Không dùng str_contains để tương thích với các phiên bản PHP < 8
+        $separator = (strpos($route, '?') !== false) ? '&' : '?';
         $url = BASE_URL . $route . $separator . 'message=' . urlencode($message) . '&type=' . $type;
         header('Location: ' . $url);
         exit;

@@ -105,8 +105,37 @@ class Tour
             return false;
         }
 
-        $stmt = $pdo->prepare('DELETE FROM tours WHERE id = :id');
-        return $stmt->execute(['id' => $id]);
+        try {
+            $stmt = $pdo->prepare('DELETE FROM tours WHERE id = :id');
+            return $stmt->execute(['id' => $id]);
+        } catch (PDOException $e) {
+            // Nếu lỗi foreign key constraint (có bookings đang tham chiếu)
+            if ($e->getCode() == '23000') {
+                return false;
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Kiểm tra xem tour có bookings đang tham chiếu không
+     */
+    public static function hasBookings($id): bool
+    {
+        $pdo = getDB();
+        if (!$pdo) {
+            return false;
+        }
+
+        try {
+            $stmt = $pdo->prepare('SELECT COUNT(*) as count FROM bookings WHERE tour_id = :id');
+            $stmt->execute(['id' => $id]);
+            $result = $stmt->fetch();
+            return ($result && (int)$result['count'] > 0);
+        } catch (PDOException $e) {
+            // Nếu bảng bookings chưa tồn tại thì coi như không có bookings
+            return false;
+        }
     }
 }
 

@@ -47,6 +47,12 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="<?= BASE_URL . 'bookings' ?>" class="nav-link">
+            <i class="nav-icon bi bi-calendar-check"></i>
+            <p>Quản lý Booking</p>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="#" class="nav-link">
             <i class="nav-icon bi bi-people-fill"></i>
             <p>

@@ -135,6 +135,24 @@
             },
           });
         }
+
+        // Ẩn các thông báo alert sau 3 giây
+        const alerts = document.querySelectorAll('.alert');
+        if (alerts.length) {
+          setTimeout(() => {
+            alerts.forEach((el) => {
+              el.classList.add('fade');
+              el.style.opacity = '0';
+              setTimeout(() => el.remove(), 300);
+            });
+          }, 3000);
+        }
+
+        // Xóa query string (message, type, ...) khỏi URL sau khi load để F5 không hiện lại
+        if (window.location.search) {
+          const cleanUrl = window.location.origin + window.location.pathname + window.location.hash;
+          window.history.replaceState({}, '', cleanUrl);
+        }
       });
     </script>
     <!--end::OverlayScrollbars Configure-->
