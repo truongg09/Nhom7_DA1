@@ -80,7 +80,7 @@
             <!--end::Menu Body-->
             <!--begin::Menu Footer-->
             <li class="user-footer">
-              <a href="#" class="btn btn-default btn-flat">Tài khoản</a>
+              <a href="<?= BASE_URL . 'users' ?>" class="btn btn-default btn-flat">Tài khoản</a>
               <a href="<?= BASE_URL . 'logout' ?>" class="btn btn-default btn-flat float-end">Đăng xuất</a>
             </li>
             <!--end::Menu Footer-->

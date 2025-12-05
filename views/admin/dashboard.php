@@ -30,38 +30,31 @@ if ($pdo) {
     $params     = [];
 
     if (!empty($fromDate)) {
-        // Lọc theo ngày khởi hành tour (start_date trong bảng bookings)
         $conditions[]        = 'b.start_date >= :from_date';
         $params['from_date'] = $fromDate;
     }
 
     if (!empty($toDate)) {
-        // Lọc theo ngày kết thúc tour (end_date trong bảng bookings)
         $conditions[]      = 'b.end_date <= :to_date';
         $params['to_date'] = $toDate;
     }
 
-    $whereSql = '';
-    if (!empty($conditions)) {
-        $whereSql = 'WHERE ' . implode(' AND ', $conditions);
-    }
+    $whereSql = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
 
-    // Tổng số booking trong khoảng thời gian
-    $sqlTotalBookings = "SELECT COUNT(*) FROM bookings b {$whereSql}";
-    $stmt = $pdo->prepare($sqlTotalBookings);
-    $stmt->execute($params);
-    $stats['totalBookings'] = (int)$stmt->fetchColumn();
-
-    // Tổng doanh thu = tổng (giá tour) của các lượt đặt
-    $sqlTotalRevenue = "
-        SELECT COALESCE(SUM(t.price), 0)
+    // Tổng số booking và doanh thu trong một query duy nhất
+    $sqlStats = "
+        SELECT 
+            COUNT(*) as total_bookings,
+            COALESCE(SUM(t.price), 0) as total_revenue
         FROM bookings b
-        JOIN tours t ON t.id = b.tour_id
+        LEFT JOIN tours t ON t.id = b.tour_id
         {$whereSql}
     ";
-    $stmt = $pdo->prepare($sqlTotalRevenue);
+    $stmt = $pdo->prepare($sqlStats);
     $stmt->execute($params);
-    $stats['totalRevenue'] = (float)$stmt->fetchColumn();
+    $result = $stmt->fetch();
+    $stats['totalBookings'] = (int)($result['total_bookings'] ?? 0);
+    $stats['totalRevenue'] = (float)($result['total_revenue'] ?? 0);
 
     // Báo cáo chi tiết doanh thu/chi phí/lợi nhuận theo từng tour
     // Giả định: hiện tại chưa lưu chi phí nên chi phí = 0, lợi nhuận = doanh thu
@@ -104,8 +97,8 @@ if ($pdo) {
       </div>
       <div class="card-body">
         <!-- Bộ lọc thời gian báo cáo (tháng / quý / năm theo khoảng ngày) -->
-        <form method="get" class="row g-3 mb-4">
-          <input type="hidden" name="act" value="home">
+        <form method="get" class="row g-3 mb-4" id="filterForm" onsubmit="return validateFilterForm(event)">
+          <input type="hidden" name="act" value="dashboard">
           <div class="col-md-3">
             <label for="from_date" class="form-label small fw-semibold">Từ ngày</label>
             <input
@@ -130,7 +123,7 @@ if ($pdo) {
             <button type="submit" class="btn btn-primary btn-sm me-2">
               <i class="bi bi-funnel me-1"></i>Lọc
             </button>
-            <a href="<?= BASE_URL . 'home' ?>" class="btn btn-outline-secondary btn-sm me-2">
+            <a href="<?= BASE_URL . 'dashboard' ?>" class="btn btn-outline-secondary btn-sm me-2">
               Xóa lọc
             </a>
             <span class="small text-muted">
@@ -266,6 +259,21 @@ if ($pdo) {
   </div>
 </div>
 <!--end::Row-->
+
+<script>
+function validateFilterForm(event) {
+    const fromDate = document.getElementById('from_date').value;
+    const toDate = document.getElementById('to_date').value;
+    
+    if (!fromDate && !toDate) {
+        event.preventDefault();
+        alert('Bạn chưa nhập thông tin thời gian lọc!');
+        return false;
+    }
+    
+    return true;
+}
+</script>
 
 <?php
 $content = ob_get_clean();
