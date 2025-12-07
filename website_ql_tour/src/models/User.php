@@ -18,7 +18,7 @@ class User
             $this->id = $data['id'] ?? null;
             $this->name = $data['name'] ?? '';
             $this->email = $data['email'] ?? '';
-            $this->role = $data['role'] ?? 'huong_dan_vien';
+            $this->role = $data['role'] ?? 'guide';
             $this->status = $data['status'] ?? 1;
         } else {
             // Nếu truyền vào string thì coi như tên (tương thích với code cũ)
@@ -43,6 +43,6 @@ class User
     // @return bool true nếu là hướng dẫn viên, false nếu không
     public function isGuide()
     {
-        return $this->role === 'huong_dan_vien';
+        return $this->role === 'guide';
     }
 }

@@ -10,7 +10,7 @@ class AuthController
         // Nếu đã đăng nhập rồi thì chuyển về trang home
         if (isLoggedIn()) {
             header('Location: ' . BASE_URL . 'home');
-            exit;   
+            exit;  
         }
 
         // Lấy URL redirect nếu có (để quay lại trang đang xem sau khi đăng nhập)
@@ -50,7 +50,7 @@ class AuthController
             $errors[] = 'Vui lòng nhập mật khẩu';
         }
 
-        // Nếu có lỗi validation thì quay lại form login
+        // Nếu có lỗi validation ban đầu, hiển thị lỗi và dừng lại
         if (!empty($errors)) {
             view('auth.login', [
                 'title' => 'Đăng nhập',
@@ -61,18 +61,57 @@ class AuthController
             return;
         }
 
-        // Tạo user mẫu để đăng nhập (không kiểm tra database)
-        // Chỉ để demo giao diện
+        // --- BẮT ĐẦU: LOGIC XÁC THỰC VỚI DATABASE (ĐÃ SỬA) ---
+
+        $pdo = getDB();
+        $user_data = null; // Khởi tạo biến lưu dữ liệu user
+        
+        if (!$pdo) {
+            $errors[] = 'Lỗi kết nối database. Vui lòng thử lại sau.';
+        } else {
+            // 1. Tìm user theo email, lấy tất cả các trường cần thiết
+            $stmt = $pdo->prepare("SELECT id, name, email, role, status, password FROM users WHERE email = :email");
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
+            $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // 2. Kiểm tra tồn tại
+            if (!$user_data) {
+                $errors[] = 'Email hoặc mật khẩu không đúng.';
+            } 
+            // 3. Kiểm tra mật khẩu (Sử dụng mật khẩu chưa mã hóa theo cấu trúc của bạn)
+            else if ($user_data['password'] !== $password) { 
+                $errors[] = 'Email hoặc mật khẩu không đúng.';
+            }
+            // 4. Kiểm tra trạng thái hoạt động
+            else if ($user_data['status'] != 1) { 
+                $errors[] = 'Tài khoản của bạn đã bị khóa hoặc không hoạt động.';
+            }
+        }
+        
+        // --- KẾT THÚC LOGIC XÁC THỰC DB ---
+
+        // Nếu có lỗi sau khi kiểm tra DB, hiển thị lỗi và dừng lại
+        if (!empty($errors)) {
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Đăng nhập thành công: Tạo đối tượng User THẬT (lấy dữ liệu từ DB) và lưu vào session
         $user = new User([
-            'id' => 1,
-            'name' => 'Người dùng mẫu',
-            'email' => $email,
-            'role' => 'huong_dan_vien',
-            'status' => 1,
+            'id' => $user_data['id'],
+            'name' => $user_data['name'],
+            'email' => $user_data['email'],
+            'role' => $user_data['role'],
+            'status' => $user_data['status'],
         ]);
 
-        // Đăng nhập thành công: lưu vào session
-        loginUser($user);
+        loginUser($user); // Hàm này sẽ lưu ID CHÍNH XÁC (ID 3) vào Session
 
         // Chuyển hướng về trang được yêu cầu hoặc trang chủ
         header('Location: ' . $redirect);
@@ -90,4 +129,3 @@ class AuthController
         exit;
     }
 }
-

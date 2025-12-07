@@ -29,7 +29,7 @@ require_once __DIR__ . '/src/controllers/BookingController.php';
 $homeController = new HomeController();
 $authController = new AuthController();
 $tourguideController = new TourGuideController();
-$bookingController = new BookingController();
+
 
 // Xác định route dựa trên tham số act (mặc định là trang chủ '/')
 $act = $_GET['act'] ?? '/';

@@ -21,8 +21,7 @@ startSession();
     <div class="card-header">
         <h3 class="card-title">
             <i class="bi bi-journal-text me-2"></i>
-            Cập nhật thông tin Tour 
-            (Ngày: <?= isset($tour['start_date']) ? date('d/m/Y', strtotime($tour['start_date'])) : 'N/A' ?>)
+            Cập nhật thông tin Tour (Ngày: <?= isset($tour['start_date']) ? date('d/m/Y', strtotime($tour['start_date'])) : 'N/A' ?>)
         </h3>
     </div>
     
