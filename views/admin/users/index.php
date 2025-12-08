@@ -3,6 +3,15 @@
 ob_start();
 ?>
 
+<?php if ($msg = getFlash('success')): ?>
+  <div class="alert alert-success"><?= $msg ?></div>
+<?php endif; ?>
+
+<?php if ($msg = getFlash('error')): ?>
+  <div class="alert alert-danger"><?= $msg ?></div>
+<?php endif; ?>
+
+
 <!--begin::Row-->
 <div class="row">
   <div class="col-12">
@@ -35,7 +44,12 @@ ob_start();
                     <td><?= $i++ ?></td>
                     <td><?= htmlspecialchars($user['name']) ?></td>
                     <td><?= htmlspecialchars($user['email']) ?></td>
-                    <td><?= htmlspecialchars($user['role']) ?></td>
+                    <td>
+                      <?php
+                      $role = $user['role'] ?? '';
+                      echo htmlspecialchars($role === 'admin' ? 'Admin' : 'Hướng dẫn viên');
+                      ?>
+                    </td>
                     <td class="text-center">
                       <?php if ((int)($user['status'] ?? 0) === 1): ?>
                         <span class="badge bg-success">Hoạt động</span>
@@ -53,8 +67,7 @@ ob_start();
                       <a
                         href="<?= BASE_URL . 'user-delete&id=' . $user['id'] ?>"
                         class="btn btn-danger btn-sm"
-                        onclick="return confirm('Bạn có chắc chắn muốn xóa người dùng này?');"
-                      >
+                        onclick="return confirm('Bạn có chắc chắn muốn xóa người dùng này?');">
                         <i class="bi bi-trash"></i>
                       </a>
                     </td>
@@ -80,14 +93,12 @@ ob_start();
 $content = ob_get_clean();
 
 view('layouts.AdminLayout', [
-    'title' => $title ?? 'Quản lý người dùng',
-    'pageTitle' => 'Quản lý người dùng',
-    'content' => $content,
-    'breadcrumb' => [
-        ['label' => 'Trang chủ', 'url' => BASE_URL . 'home', 'active' => false],
-        ['label' => 'Người dùng', 'url' => BASE_URL . 'users', 'active' => true],
-    ],
+  'title' => $title ?? 'Quản lý người dùng',
+  'pageTitle' => 'Quản lý người dùng',
+  'content' => $content,
+  'breadcrumb' => [
+    ['label' => 'Trang chủ', 'url' => BASE_URL . 'home', 'active' => false],
+    ['label' => 'Người dùng', 'url' => BASE_URL . 'users', 'active' => true],
+  ],
 ]);
 ?>
-
-

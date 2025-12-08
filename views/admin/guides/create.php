@@ -18,6 +18,45 @@ $old = $old ?? [
     'group_type' => '',
     'speciality' => '',
 ];
+
+$asText = static function ($value): string {
+    $flatten = static function ($input): array {
+        $result = [];
+        $stack = is_array($input) ? $input : [$input];
+        while ($stack) {
+            $item = array_shift($stack);
+            if (is_array($item)) {
+                foreach ($item as $child) {
+                    $stack[] = $child;
+                }
+                continue;
+            }
+            if (is_scalar($item)) {
+                $str = trim((string)$item);
+                if ($str !== '') {
+                    $result[] = $str;
+                }
+            }
+        }
+        return $result;
+    };
+
+    if ($value === null || $value === '') return '';
+
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $value = $decoded;
+        }
+    }
+
+    if (is_array($value)) {
+        $items = $flatten($value);
+        return implode(', ', $items);
+    }
+
+    return (string)$value;
+};
 ?>
 
 <div class="row">
@@ -93,11 +132,11 @@ $old = $old ?? [
           <div class="row">
             <div class="col-md-6 mb-3">
               <label for="phone" class="form-label">Điện thoại</label>
-              <input type="text" class="form-control" id="phone" name="phone" value="<?= htmlspecialchars($old['phone'] ?? '') ?>">
+              <input type="text" class="form-control" id="phone" name="phone" value="<?= htmlspecialchars($asText($old['phone'] ?? '')) ?>">
             </div>
             <div class="col-md-6 mb-3">
             <label for="birthdate" class="form-label">Ngày sinh</label>
-            <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?= htmlspecialchars($old['birthdate'] ?? '') ?>">
+            <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?= htmlspecialchars($asText($old['birthdate'] ?? '')) ?>">
             </div>
           </div>
 
@@ -109,51 +148,55 @@ $old = $old ?? [
 
           <div class="mb-3">
           <label for="certificate" class="form-label">Chứng chỉ chuyên môn</label>
-          <textarea class="form-control" id="certificate" name="certificate" rows="2"><?= htmlspecialchars($old['certificate'] ?? '') ?></textarea>
+          <textarea class="form-control" id="certificate" name="certificate" rows="2"><?= htmlspecialchars($asText($old['certificate'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
             <label for="languages" class="form-label">Ngôn ngữ sử dụng</label>
-            <textarea class="form-control" id="languages" name="languages" rows="2"><?= htmlspecialchars($old['languages'] ?? '') ?></textarea>
+            <textarea class="form-control" id="languages" name="languages" rows="2"><?= htmlspecialchars($asText($old['languages'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
           <label for="experience" class="form-label">Kinh nghiệm (năm)</label>
-          <input type="text" class="form-control" id="experience" name="experience" value="<?= htmlspecialchars($old['experience'] ?? '') ?>">
+          <input type="text" class="form-control" id="experience" name="experience" value="<?= htmlspecialchars($asText($old['experience'] ?? '')) ?>">
           </div>
 
           <div class="mb-3">
             <label for="tour_history" class="form-label">Lịch sử dẫn tour</label>
-          <textarea class="form-control" id="tour_history" name="history" rows="3"><?= htmlspecialchars($old['history'] ?? '') ?></textarea>
+          <textarea class="form-control" id="tour_history" name="history" rows="3"><?= htmlspecialchars($asText($old['history'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
           <label for="rating" class="form-label">Đánh giá năng lực / rating</label>
-          <textarea class="form-control" id="rating" name="rating" rows="2"><?= htmlspecialchars($old['rating'] ?? '') ?></textarea>
+          <textarea class="form-control" id="rating" name="rating" rows="2"><?= htmlspecialchars($asText($old['rating'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
             <label for="health_status" class="form-label">Tình trạng sức khoẻ</label>
-            <textarea class="form-control" id="health_status" name="health_status" rows="2"><?= htmlspecialchars($old['health_status'] ?? '') ?></textarea>
+            <textarea class="form-control" id="health_status" name="health_status" rows="2"><?= htmlspecialchars($asText($old['health_status'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
             <label for="group_type" class="form-label">Phân loại HDV (nội địa/quốc tế/tuyến/khách đoàn...)</label>
-            <input type="text" class="form-control" id="group_type" name="group_type" value="<?= htmlspecialchars($old['group_type'] ?? '') ?>">
+            <input type="text" class="form-control" id="group_type" name="group_type" value="<?= htmlspecialchars($asText($old['group_type'] ?? '')) ?>">
           </div>
 
           <div class="mb-3">
           <label for="speciality" class="form-label">Chuyên tuyến / thế mạnh</label>
-          <textarea class="form-control" id="speciality" name="speciality" rows="2"><?= htmlspecialchars($old['speciality'] ?? '') ?></textarea>
+          <textarea class="form-control" id="speciality" name="speciality" rows="2"><?= htmlspecialchars($asText($old['speciality'] ?? '')) ?></textarea>
           </div>
 
-          <div class="d-flex justify-content-between">
-            <a href="<?= BASE_URL . 'guides' ?>" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
-            </a>
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-save me-1"></i> Lưu HDV
-            </button>
+          <div class="d-flex align-items-center">
+            <div>
+              <a href="<?= BASE_URL . 'guides' ?>" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+              </a>
+            </div>
+            <div class="flex-grow-1 d-flex justify-content-center">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Lưu HDV
+              </button>
+            </div>
           </div>
         </form>
       </div>

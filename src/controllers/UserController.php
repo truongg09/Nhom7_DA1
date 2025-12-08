@@ -223,6 +223,7 @@ class UserController
     }
 
     // Xóa người dùng
+    // Xóa người dùng (Cách 2: Chặn xóa nếu còn hồ sơ HDV)
     public function delete(): void
     {
         requireAdmin();
@@ -234,14 +235,23 @@ class UserController
         }
 
         $pdo = getDB();
-        if ($pdo) {
+
+        try {
             $stmt = $pdo->prepare('DELETE FROM users WHERE id = :id');
             $stmt->execute(['id' => $id]);
+
+            setFlash('success', 'Xóa tài khoản thành công!');
+        } catch (PDOException $e) {
+
+            // Lỗi khóa ngoại — không cho xóa
+            if ($e->getCode() === '23000') {
+                setFlash('error', 'Không thể xóa: Tài khoản này đang được sử dụng trong hồ sơ hướng dẫn viên.');
+            } else {
+                setFlash('error', 'Đã xảy ra lỗi khi xóa tài khoản.');
+            }
         }
 
         header('Location: ' . BASE_URL . 'users');
         exit;
     }
 }
-
-

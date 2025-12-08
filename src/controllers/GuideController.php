@@ -153,18 +153,34 @@ class GuideController
     // Chuẩn hóa dữ liệu profile từ POST
     private function normalizeProfileData(array $post, ?string $oldAvatar = null): array
     {
+        $jsonify = static function ($value): ?string {
+            $value = trim((string)($value ?? ''));
+            if ($value === '') {
+                return null;
+            }
+
+            // Nếu đã là JSON hợp lệ thì giữ nguyên
+            json_decode($value);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $value;
+            }
+
+            // Mặc định encode sang JSON string để thoả các CHECK JSON_VALID
+            return json_encode($value, JSON_UNESCAPED_UNICODE);
+        };
+
         return [
             'birthdate'     => $this->normalizeBirthdate($post['birthdate'] ?? null),
             'avatar'        => $this->uploadAvatar($oldAvatar),
             'phone'         => $this->truncateString($post['phone'] ?? null, 20),
-            'certificate'   => $this->normalizeText($post['certificate'] ?? null),
-            'languages'     => $this->normalizeText($post['languages'] ?? null),
-            'experience'    => $this->normalizeText($post['experience'] ?? null),
-            'history'       => $this->normalizeText($post['history'] ?? null),
+            'certificate'   => $jsonify($post['certificate'] ?? null),
+            'languages'     => $jsonify($post['languages'] ?? null),
+            'experience'    => $jsonify($post['experience'] ?? null),
+            'history'       => $jsonify($post['history'] ?? null),
             'rating'        => $this->normalizeRating($post['rating'] ?? null),
-            'health_status' => $this->normalizeText($post['health_status'] ?? null),
+            'health_status' => $jsonify($post['health_status'] ?? null),
             'group_type'    => $this->truncateString($post['group_type'] ?? null, 50),
-            'speciality'    => $this->truncateString($post['speciality'] ?? null, 100),
+            'speciality'    => $jsonify($post['speciality'] ?? null),
         ];
     }
 

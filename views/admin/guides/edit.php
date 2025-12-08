@@ -3,6 +3,47 @@
 ob_start();
 
 $profile = $profile ?? [];
+
+$asText = static function ($value): string {
+    // Flatten nested arrays/JSON to a comma-separated string
+    $flatten = static function ($input): array {
+        $result = [];
+        $stack = is_array($input) ? $input : [$input];
+        while ($stack) {
+            $item = array_shift($stack);
+            if (is_array($item)) {
+                foreach ($item as $child) {
+                    $stack[] = $child;
+                }
+                continue;
+            }
+            if (is_scalar($item)) {
+                $str = trim((string)$item);
+                if ($str !== '') {
+                    $result[] = $str;
+                }
+            }
+        }
+        return $result;
+    };
+
+    if ($value === null || $value === '') return '';
+
+    // If JSON string, decode first
+    if (is_string($value)) {
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $value = $decoded;
+        }
+    }
+
+    if (is_array($value)) {
+        $items = $flatten($value);
+        return implode(', ', $items);
+    }
+
+    return (string)$value;
+};
 ?>
 
 <div class="row">
@@ -24,6 +65,7 @@ $profile = $profile ?? [];
 
         <form action="<?= BASE_URL . 'guide-update' ?>" method="post" enctype="multipart/form-data" autocomplete="off">
           <input type="hidden" name="id" value="<?= htmlspecialchars($guide['id']) ?>">
+          <input type="hidden" name="status" value="<?= htmlspecialchars($guide['status'] ?? 1) ?>">
 
           <div class="mb-3">
             <label for="name" class="form-label">Họ tên HDV</label>
@@ -49,43 +91,17 @@ $profile = $profile ?? [];
             >
           </div>
 
-          <div class="mb-3">
-            <label for="password" class="form-label">
-              Mật khẩu mới (để trống nếu không đổi)
-            </label>
-            <input
-              type="password"
-              class="form-control"
-              id="password"
-              name="password"
-            >
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label d-block">Trạng thái</label>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="status" id="status_active" value="1"
-                <?= (int)($guide['status'] ?? 1) === 1 ? 'checked' : '' ?>>
-              <label class="form-check-label" for="status_active">Hoạt động</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="status" id="status_inactive" value="0"
-                <?= (int)($guide['status'] ?? 1) === 0 ? 'checked' : '' ?>>
-              <label class="form-check-label" for="status_inactive">Khóa</label>
-            </div>
-          </div>
-
           <hr>
           <h5 class="mb-3">Hồ sơ chi tiết</h5>
 
           <div class="row">
             <div class="col-md-6 mb-3">
               <label for="phone" class="form-label">Điện thoại</label>
-              <input type="text" class="form-control" id="phone" name="phone" value="<?= htmlspecialchars($profile['phone'] ?? '') ?>">
+              <input type="text" class="form-control" id="phone" name="phone" value="<?= htmlspecialchars($asText($profile['phone'] ?? '')) ?>">
             </div>
             <div class="col-md-6 mb-3">
             <label for="birthdate" class="form-label">Ngày sinh</label>
-            <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?= htmlspecialchars($profile['birthdate'] ?? '') ?>">
+            <input type="date" class="form-control" id="birthdate" name="birthdate" value="<?= htmlspecialchars($asText($profile['birthdate'] ?? '')) ?>">
             </div>
           </div>
 
@@ -103,51 +119,55 @@ $profile = $profile ?? [];
 
           <div class="mb-3">
           <label for="certificate" class="form-label">Chứng chỉ chuyên môn</label>
-          <textarea class="form-control" id="certificate" name="certificate" rows="2"><?= htmlspecialchars($profile['certificate'] ?? '') ?></textarea>
+          <textarea class="form-control" id="certificate" name="certificate" rows="2"><?= htmlspecialchars($asText($profile['certificate'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
             <label for="languages" class="form-label">Ngôn ngữ sử dụng</label>
-            <textarea class="form-control" id="languages" name="languages" rows="2"><?= htmlspecialchars($profile['languages'] ?? '') ?></textarea>
+            <textarea class="form-control" id="languages" name="languages" rows="2"><?= htmlspecialchars($asText($profile['languages'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
           <label for="experience" class="form-label">Kinh nghiệm (năm)</label>
-          <input type="text" class="form-control" id="experience" name="experience" value="<?= htmlspecialchars($profile['experience'] ?? '') ?>">
+          <input type="text" class="form-control" id="experience" name="experience" value="<?= htmlspecialchars($asText($profile['experience'] ?? '')) ?>">
           </div>
 
           <div class="mb-3">
             <label for="tour_history" class="form-label">Lịch sử dẫn tour</label>
-          <textarea class="form-control" id="tour_history" name="history" rows="3"><?= htmlspecialchars($profile['history'] ?? '') ?></textarea>
+          <textarea class="form-control" id="tour_history" name="history" rows="3"><?= htmlspecialchars($asText($profile['history'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
           <label for="rating" class="form-label">Đánh giá năng lực / rating</label>
-          <textarea class="form-control" id="rating" name="rating" rows="2"><?= htmlspecialchars($profile['rating'] ?? '') ?></textarea>
+          <textarea class="form-control" id="rating" name="rating" rows="2"><?= htmlspecialchars($asText($profile['rating'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
             <label for="health_status" class="form-label">Tình trạng sức khoẻ</label>
-            <textarea class="form-control" id="health_status" name="health_status" rows="2"><?= htmlspecialchars($profile['health_status'] ?? '') ?></textarea>
+            <textarea class="form-control" id="health_status" name="health_status" rows="2"><?= htmlspecialchars($asText($profile['health_status'] ?? '')) ?></textarea>
           </div>
 
           <div class="mb-3">
             <label for="group_type" class="form-label">Phân loại HDV (nội địa/quốc tế/tuyến/khách đoàn...)</label>
-            <input type="text" class="form-control" id="group_type" name="group_type" value="<?= htmlspecialchars($profile['group_type'] ?? '') ?>">
+            <input type="text" class="form-control" id="group_type" name="group_type" value="<?= htmlspecialchars($asText($profile['group_type'] ?? '')) ?>">
           </div>
 
           <div class="mb-3">
           <label for="speciality" class="form-label">Chuyên tuyến / thế mạnh</label>
-          <textarea class="form-control" id="speciality" name="speciality" rows="2"><?= htmlspecialchars($profile['speciality'] ?? '') ?></textarea>
+          <textarea class="form-control" id="speciality" name="speciality" rows="2"><?= htmlspecialchars($asText($profile['speciality'] ?? '')) ?></textarea>
           </div>
 
-          <div class="d-flex justify-content-between">
-            <a href="<?= BASE_URL . 'guides' ?>" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
-            </a>
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-save me-1"></i> Cập nhật
-            </button>
+          <div class="d-flex align-items-center">
+            <div>
+              <a href="<?= BASE_URL . 'guides' ?>" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+              </a>
+            </div>
+            <div class="flex-grow-1 d-flex justify-content-center">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Cập nhật
+              </button>
+            </div>
           </div>
         </form>
       </div>

@@ -1,5 +1,6 @@
 <?php
 
+session_start();
 // Nạp cấu hình chung của ứng dụng
 $config = require __DIR__ . '/config/config.php';
 

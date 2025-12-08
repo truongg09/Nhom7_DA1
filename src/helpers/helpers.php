@@ -132,7 +132,7 @@ function requireLogin($redirectUrl = null)
 function requireAdmin()
 {
     requireLogin();
-    
+
     if (!isAdmin()) {
         header('Location: ' . BASE_URL);
         exit;
@@ -143,9 +143,21 @@ function requireAdmin()
 function requireGuideOrAdmin()
 {
     requireLogin();
-    
+
     if (!isGuide() && !isAdmin()) {
         header('Location: ' . BASE_URL);
         exit;
     }
+}
+function setFlash($key, $message)
+{
+    $_SESSION[$key] = $message;
+}
+
+function getFlash($key)
+{
+    if (!isset($_SESSION[$key])) return null;
+    $msg = $_SESSION[$key];
+    unset($_SESSION[$key]); // Lấy xong thì xóa
+    return $msg;
 }

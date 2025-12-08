@@ -80,13 +80,17 @@ $old = $old ?? ['name' => '', 'email' => '', 'role' => 'huong_dan_vien', 'status
             </div>
           </div>
 
-          <div class="d-flex justify-content-between">
-            <a href="<?= BASE_URL . 'users' ?>" class="btn btn-outline-secondary">
-              <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
-            </a>
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-save me-1"></i> Lưu người dùng
-            </button>
+          <div class="d-flex align-items-center">
+            <div>
+              <a href="<?= BASE_URL . 'users' ?>" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+              </a>
+            </div>
+            <div class="flex-grow-1 d-flex justify-content-center">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Lưu người dùng
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -108,6 +112,8 @@ view('layouts.AdminLayout', [
     ],
 ]);
 ?>
+
+
 
 
 
