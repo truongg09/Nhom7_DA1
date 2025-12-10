@@ -144,12 +144,12 @@ ob_start();
         <p class="form-control-plaintext"><?= htmlspecialchars($booking['tour_name'] ?? 'N/A') ?></p>
       </div>
       <div class="col-md-6">
-        <label class="form-label fw-bold">Người tạo</label>
-        <p class="form-control-plaintext"><?= htmlspecialchars($booking['created_by_name'] ?? 'N/A') ?></p>
-      </div>
-      <div class="col-md-6">
         <label class="form-label fw-bold">Hướng dẫn viên</label>
         <p class="form-control-plaintext"><?= htmlspecialchars($booking['assigned_guide_name'] ?? 'Chưa phân công') ?></p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Người tạo</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($booking['created_by_name'] ?? 'N/A') ?></p>
       </div>
       <div class="col-md-6">
         <label class="form-label fw-bold">Trạng thái</label>
@@ -166,19 +166,19 @@ ob_start();
         <p class="form-control-plaintext"><?= htmlspecialchars($booking['end_date'] ?? 'N/A') ?></p>
       </div>
       <?php if (!empty($booking['schedule_detail'])): ?>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Chi tiết lịch trình</label>
           <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['schedule_detail']))) ?></div>
         </div>
       <?php endif; ?>
       <?php if (!empty($booking['service_detail'])): ?>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Chi tiết dịch vụ</label>
           <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['service_detail']))) ?></div>
         </div>
       <?php endif; ?>
       <?php if (!empty($booking['diary'])): ?>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Nhật ký</label>
           <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['diary'], 'entries'))) ?></div>
         </div>
@@ -215,7 +215,7 @@ ob_start();
       }
       ?>
       <?php if (!empty($fileUrl)): ?>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Danh sách file</label>
           <div class="form-control-plaintext">
             <?php 
@@ -232,7 +232,7 @@ ob_start();
         </div>
       <?php endif; ?>
       <?php if (!empty($booking['notes'])): ?>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Ghi chú</label>
           <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($booking['notes'])) ?></div>
         </div>

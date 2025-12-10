@@ -34,13 +34,17 @@ ob_start();
 <div class="card">
   <div class="card-header d-flex align-items-center">
     <h3 class="card-title mb-0"><?= htmlspecialchars($pageTitle ?? 'Tour được phân công') ?></h3>
+    <div class="position-relative ms-auto" style="width: 200px;">
+      <i class="bi bi-search position-absolute" style="left: 10px; top: 50%; transform: translateY(-50%); color: #6c757d; pointer-events: none;"></i>
+      <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Tìm kiếm..." style="padding-left: 35px;" />
+    </div>
   </div>
   <div class="card-body">
     <?php if (empty($bookings)): ?>
       <p class="text-muted mb-0">Chưa có booking nào được phân công.</p>
     <?php else: ?>
       <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle">
+            <table class="table table-striped table-hover align-middle" id="dataTable">
           <thead class="table-light">
             <tr>
                   <th>STT</th>
@@ -95,6 +99,31 @@ ob_start();
   </div>
 </div>
 <!--end::Row-->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchInput');
+  const table = document.getElementById('dataTable');
+  
+  if (searchInput && table) {
+    searchInput.addEventListener('keyup', function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+      
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent || row.innerText;
+        
+        if (text.toLowerCase().indexOf(searchTerm) > -1) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+    });
+  }
+});
+</script>
 
 <?php
 $content = ob_get_clean();

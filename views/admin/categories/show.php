@@ -21,14 +21,10 @@ ob_start();
   <div class="card-body">
     <div class="row g-4">
       <div class="col-md-6">
-        <label class="form-label fw-bold">ID</label>
-        <p class="form-control-plaintext"><?= htmlspecialchars($category['id'] ?? '') ?></p>
-      </div>
-      <div class="col-md-6">
         <label class="form-label fw-bold">Tên danh mục</label>
         <p class="form-control-plaintext"><?= htmlspecialchars($category['name'] ?? '') ?></p>
       </div>
-      <div class="col-12">
+      <div class="col-md-6">
         <label class="form-label fw-bold">Mô tả</label>
         <p class="form-control-plaintext"><?= nl2br(htmlspecialchars($category['description'] ?? '')) ?></p>
       </div>

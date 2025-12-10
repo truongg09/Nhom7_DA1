@@ -25,14 +25,20 @@ ob_start();
         <p class="form-control-plaintext"><?= htmlspecialchars($tour['name'] ?? '') ?></p>
       </div>
       <div class="col-md-6">
+        <label class="form-label fw-bold">Mô tả</label>
+        <p class="form-control-plaintext"><?= nl2br(htmlspecialchars($tour['description'] ?? '')) ?></p>
+      </div>
+      <div class="col-md-6">
         <label class="form-label fw-bold">Danh mục</label>
         <p class="form-control-plaintext">
           <?= htmlspecialchars($tour['category_name'] ?? ($tour['category_id'] ?? 'N/A')) ?>
         </p>
       </div>
-      <div class="col-12">
-        <label class="form-label fw-bold">Mô tả</label>
-        <p class="form-control-plaintext"><?= nl2br(htmlspecialchars($tour['description'] ?? '')) ?></p>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Giá tour (VNĐ)</label>
+        <p class="form-control-plaintext">
+          <strong class="text-primary"><?= number_format((float) ($tour['price'] ?? 0)) ?> VNĐ</strong>
+        </p>
       </div>
       <div class="col-12">
         <label class="form-label fw-bold">Lịch trình</label>
@@ -117,12 +123,6 @@ ob_start();
         </div>
       </div>
       <div class="col-md-6">
-        <label class="form-label fw-bold">Giá tour (VNĐ)</label>
-        <p class="form-control-plaintext">
-          <strong class="text-primary"><?= number_format((float) ($tour['price'] ?? 0)) ?> VNĐ</strong>
-        </p>
-      </div>
-      <div class="col-md-6">
         <label class="form-label fw-bold">Trạng thái</label>
         <p class="form-control-plaintext">
           <span class="badge bg-<?= (int) ($tour['status'] ?? 0) === 1 ? 'success' : 'secondary' ?>">
@@ -131,7 +131,7 @@ ob_start();
         </p>
       </div>
       <?php if (!empty($tour['prices'])): ?>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Bảng giá chi tiết</label>
           <div class="form-control-plaintext">
             <?php
@@ -176,8 +176,12 @@ ob_start();
           </div>
         </div>
       <?php endif; ?>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Ngày tạo</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($tour['created_at'] ?? '') ?></p>
+      </div>
       <?php if (!empty($tour['policies'])): ?>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Chính sách</label>
           <div class="form-control-plaintext">
             <?php
@@ -219,7 +223,7 @@ ob_start();
         </div>
       <?php endif; ?>
       <?php if (!empty($tour['suppliers'])): ?>
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label fw-bold">Nhà cung cấp</label>
           <div class="form-control-plaintext">
             <?php
@@ -260,10 +264,6 @@ ob_start();
           </div>
         </div>
       <?php endif; ?>
-      <div class="col-md-6">
-        <label class="form-label fw-bold">Ngày tạo</label>
-        <p class="form-control-plaintext"><?= htmlspecialchars($tour['created_at'] ?? '') ?></p>
-      </div>
       <div class="col-md-6">
         <label class="form-label fw-bold">Ngày cập nhật</label>
         <p class="form-control-plaintext"><?= htmlspecialchars($tour['updated_at'] ?? '') ?></p>
