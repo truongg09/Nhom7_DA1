@@ -20,55 +20,69 @@ $getStatusName = static function ($status) use ($statuses) {
 ob_start();
 ?>
 
+<?php if ($msg = getFlash('success')): ?>
+  <div class="alert alert-success"><?= $msg ?></div>
+<?php endif; ?>
+
+<?php if ($msg = getFlash('error')): ?>
+  <div class="alert alert-danger"><?= $msg ?></div>
+<?php endif; ?>
+
+<!--begin::Row-->
+<div class="row">
+  <div class="col-12">
 <div class="card">
   <div class="card-header d-flex align-items-center">
     <h3 class="card-title mb-0"><?= htmlspecialchars($pageTitle ?? 'Tour được phân công') ?></h3>
   </div>
   <div class="card-body">
-    <?php if (!empty($message)): ?>
-      <div class="alert alert-<?= htmlspecialchars($messageType) ?>">
-        <?= htmlspecialchars($message) ?>
-      </div>
-    <?php endif; ?>
-
     <?php if (empty($bookings)): ?>
       <p class="text-muted mb-0">Chưa có booking nào được phân công.</p>
     <?php else: ?>
       <div class="table-responsive">
-        <table class="table table-bordered table-hover">
+            <table class="table table-striped table-hover align-middle">
           <thead class="table-light">
             <tr>
-              <th class="text-center">ID</th>
+                  <th>STT</th>
               <th>Tour</th>
               <th>Người tạo</th>
-              <th>Trạng thái</th>
-              <th>Ngày bắt đầu</th>
-              <th>Ngày kết thúc</th>
-              <th>Ngày tạo</th>
-              <th class="text-center">Hành động</th>
+                  <th class="text-center">Trạng thái</th>
+                  <th class="text-center">Ngày bắt đầu</th>
+                  <th class="text-center">Ngày kết thúc</th>
+                  <th class="text-center">Ngày tạo</th>
+                  <th class="text-center">Thao tác</th>
             </tr>
           </thead>
           <tbody>
+                <?php $i = 1; ?>
             <?php foreach ($bookings as $booking): ?>
               <tr>
-                <td class="text-center"><?= htmlspecialchars($booking['id']) ?></td>
+                    <td><?= $i++ ?></td>
                 <td><?= htmlspecialchars($booking['tour_name'] ?? 'N/A') ?></td>
                 <td><?= htmlspecialchars($booking['created_by_name'] ?? 'N/A') ?></td>
-                <td>
+                    <td class="text-center">
                   <span class="badge bg-info">
                     <?= htmlspecialchars($getStatusName($booking['status'] ?? '')) ?>
                   </span>
                 </td>
-                <td><?= htmlspecialchars($booking['start_date'] ?? 'N/A') ?></td>
-                <td><?= htmlspecialchars($booking['end_date'] ?? 'N/A') ?></td>
-                <td><?= htmlspecialchars($booking['created_at'] ?? '') ?></td>
-                <td class="d-flex justify-content-center gap-2">
-                  <a href="<?= BASE_URL ?>booking-show?id=<?= urlencode($booking['id']) ?>" class="btn btn-sm btn-info" title="Xem chi tiết booking">
+                    <td class="text-center">
+                      <?= htmlspecialchars($booking['start_date'] ?? 'N/A') ?>
+                    </td>
+                    <td class="text-center">
+                      <?= htmlspecialchars($booking['end_date'] ?? 'N/A') ?>
+                    </td>
+                    <td class="text-center">
+                      <?= htmlspecialchars($booking['created_at'] ?? '') ?>
+                    </td>
+                    <td class="text-center">
+                      <div class="d-flex justify-content-center gap-2 w-100">
+                        <a href="<?= BASE_URL ?>booking-show?id=<?= urlencode($booking['id']) ?>" class="btn btn-info btn-sm" title="Xem chi tiết booking">
                     <i class="bi bi-eye"></i>
                   </a>
-                  <a href="<?= BASE_URL ?>booking-diary&id=<?= urlencode($booking['id']) ?>" class="btn btn-sm btn-warning" title="Xem ghi chú">
+                        <a href="<?= BASE_URL ?>booking-diary&id=<?= urlencode($booking['id']) ?>" class="btn btn-warning btn-sm" title="Xem ghi chú">
                     <i class="bi bi-journal-text"></i>
                   </a>
+                      </div>
                 </td>
               </tr>
             <?php endforeach; ?>
@@ -78,6 +92,9 @@ ob_start();
     <?php endif; ?>
   </div>
 </div>
+  </div>
+</div>
+<!--end::Row-->
 
 <?php
 $content = ob_get_clean();

@@ -90,9 +90,6 @@ ob_start();
         <button type="submit" class="btn btn-primary">
           <i class="bi bi-save me-1"></i> Lưu nhật ký
         </button>
-        <a href="<?= BASE_URL ?>tours" class="btn btn-secondary">
-          <i class="bi bi-x-circle me-1"></i> Hủy
-        </a>
       </div>
     </form>
   </div>

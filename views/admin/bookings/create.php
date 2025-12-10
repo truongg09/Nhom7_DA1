@@ -16,7 +16,7 @@ ob_start();
   </div>
 <?php endif; ?>
 
-<form action="<?= BASE_URL ?>booking-store" method="POST" class="card">
+<form action="<?= BASE_URL ?>booking-store" method="POST" enctype="multipart/form-data" class="card">
   <div class="card-header">
     <h3 class="card-title mb-0">Thông tin booking</h3>
   </div>

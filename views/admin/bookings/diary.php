@@ -72,6 +72,13 @@ ob_start();
     </div>
   </div>
   <div class="card-body">
+    <?php if (isset($upload_error)): ?>
+      <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        <?= htmlspecialchars($upload_error) ?>
+      </div>
+    <?php endif; ?>
+    
     <div class="mb-3">
       <label class="form-label fw-bold">Tour</label>
       <p class="form-control-plaintext"><?= htmlspecialchars($booking['tour_name'] ?? 'N/A') ?></p>
@@ -90,9 +97,6 @@ ob_start();
         <button type="submit" class="btn btn-primary">
           <i class="bi bi-save me-1"></i> Lưu nhật ký
         </button>
-        <a href="<?= BASE_URL ?>bookings" class="btn btn-secondary">
-          <i class="bi bi-x-circle me-1"></i> Hủy
-        </a>
       </div>
     </form>
   </div>

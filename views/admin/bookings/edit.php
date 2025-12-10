@@ -16,7 +16,7 @@ ob_start();
   </div>
 <?php endif; ?>
 
-<form action="<?= BASE_URL ?>booking-update" method="POST" class="card">
+<form action="<?= BASE_URL ?>booking-update" method="POST" enctype="multipart/form-data" class="card">
   <input type="hidden" name="id" value="<?= htmlspecialchars($booking['id'] ?? $old['id'] ?? '') ?>" />
   <div class="card-header">
     <h3 class="card-title mb-0">Cập nhật thông tin booking</h3>

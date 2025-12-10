@@ -183,10 +183,52 @@ ob_start();
           <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['diary'], 'entries'))) ?></div>
         </div>
       <?php endif; ?>
-      <?php if (!empty($booking['lists_file'])): ?>
+      <?php 
+      $listsFile = $booking['lists_file'] ?? '';
+      $fileUrl = '';
+      $originalFileName = '';
+      
+      if (!empty($listsFile)) {
+          // Kiểm tra xem có phải là JSON không
+          $decoded = json_decode($listsFile, true);
+          if ($decoded !== null && json_last_error() === JSON_ERROR_NONE) {
+              // Nếu là object với url và original_name (định dạng mới)
+              if (isset($decoded['url']) && isset($decoded['original_name'])) {
+                  $fileUrl = $decoded['url'];
+                  $originalFileName = $decoded['original_name'];
+              }
+              // Nếu là object với key "raw" (định dạng cũ)
+              elseif (isset($decoded['raw'])) {
+                  $fileUrl = $decoded['raw'];
+                  $originalFileName = basename($fileUrl);
+              }
+              // Nếu là string trong JSON
+              elseif (is_string($decoded)) {
+                  $fileUrl = $decoded;
+                  $originalFileName = basename($fileUrl);
+              }
+          } else {
+              // Text thuần
+              $fileUrl = $listsFile;
+              $originalFileName = basename($fileUrl);
+          }
+      }
+      ?>
+      <?php if (!empty($fileUrl)): ?>
         <div class="col-12">
           <label class="form-label fw-bold">Danh sách file</label>
-          <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['lists_file']))) ?></div>
+          <div class="form-control-plaintext">
+            <?php 
+            $displayName = $originalFileName ?: basename($fileUrl);
+            if (empty($displayName) || $displayName === $fileUrl) {
+              $displayName = 'danh_sach_booking_' . ($booking['id'] ?? '');
+            }
+            ?>
+            <a href="<?= BASE_URL ?>booking-download-lists-file?id=<?= urlencode($booking['id'] ?? '') ?>" class="text-decoration-none">
+              <i class="bi bi-file-earmark me-1"></i>
+              <?= htmlspecialchars($displayName) ?>
+            </a>
+          </div>
         </div>
       <?php endif; ?>
       <?php if (!empty($booking['notes'])): ?>

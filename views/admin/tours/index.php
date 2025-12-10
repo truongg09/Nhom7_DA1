@@ -38,7 +38,7 @@ ob_start();
                   <th>Giá</th>
                   <th class="text-center">Trạng thái</th>
                   <th class="text-center">Ngày tạo</th>
-                  <th class="text-end">Thao tác</th>
+                  <th class="text-center">Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -140,8 +140,8 @@ ob_start();
                     <td class="text-center">
                       <?= htmlspecialchars($tour['created_at']) ?>
                     </td>
-                    <td class="text-end">
-                      <div class="d-flex justify-content-end gap-2 w-100">
+                    <td class="text-center">
+                      <div class="d-flex justify-content-center gap-2 w-100">
                         <a href="<?= BASE_URL ?>tour-show&id=<?= urlencode($tour['id']) ?>" class="btn btn-info btn-sm" title="Xem chi tiết">
                           <i class="bi bi-eye"></i>
                         </a>

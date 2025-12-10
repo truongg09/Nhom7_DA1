@@ -202,7 +202,58 @@ $getStatusName = static function ($status) use ($statuses) {
   </div>
   <div class="col-12">
     <label class="form-label">Danh sách file</label>
-    <textarea name="lists_file" class="form-control" rows="3" placeholder="Danh sách file, mỗi file một dòng"><?= htmlspecialchars($extractText($value('lists_file'))) ?></textarea>
+    <?php 
+    $currentFile = $value('lists_file');
+    $fileUrl = '';
+    $originalFileName = '';
+    
+    if (!empty($currentFile)) {
+        // Kiểm tra xem có phải là JSON không
+        $decoded = json_decode($currentFile, true);
+        if ($decoded !== null && json_last_error() === JSON_ERROR_NONE) {
+            // Định dạng mới với url và original_name
+            if (isset($decoded['url']) && isset($decoded['original_name'])) {
+                $fileUrl = $decoded['url'];
+                $originalFileName = $decoded['original_name'];
+            }
+            // Định dạng cũ với raw
+            elseif (isset($decoded['raw'])) {
+                $fileUrl = $decoded['raw'];
+                $originalFileName = basename($fileUrl);
+            }
+            // String trong JSON
+            elseif (is_string($decoded)) {
+                $fileUrl = $decoded;
+                $originalFileName = basename($fileUrl);
+            }
+        } else {
+            // Text thuần
+            $fileUrl = $currentFile;
+            $originalFileName = basename($fileUrl);
+        }
+    }
+    ?>
+    <?php 
+    // Lấy booking ID từ booking hoặc old
+    $bookingId = $booking['id'] ?? $old['id'] ?? '';
+    ?>
+    <?php if (!empty($fileUrl) && !empty($bookingId)): ?>
+      <div class="mb-2">
+        <?php 
+        $displayName = $originalFileName ?: basename($fileUrl);
+        if (empty($displayName) || $displayName === $fileUrl) {
+          $displayName = 'danh_sach_booking_' . $bookingId;
+        }
+        ?>
+        <div>
+          <i class="bi bi-file-earmark me-1"></i>
+          <a href="<?= BASE_URL ?>booking-download-lists-file?id=<?= urlencode($bookingId) ?>" class="text-decoration-none">
+            <?= htmlspecialchars($displayName) ?>
+          </a>
+        </div>
+      </div>
+    <?php endif; ?>
+    <input type="file" name="lists_file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.jpg,.jpeg,.png" />
   </div>
   <div class="col-12">
     <label class="form-label">Ghi chú</label>
