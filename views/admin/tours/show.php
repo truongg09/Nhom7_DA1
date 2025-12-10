@@ -11,9 +11,11 @@ ob_start();
       <a href="<?= BASE_URL ?>tours" class="btn btn-secondary">
         <i class="bi bi-arrow-left me-1"></i> Quay lại
       </a>
-      <a href="<?= BASE_URL ?>tour-edit?id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-warning">
-        <i class="bi bi-pencil-square me-1"></i> Sửa
-      </a>
+      <?php if (isAdmin()): ?>
+        <a href="<?= BASE_URL ?>tour-edit?id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-warning">
+          <i class="bi bi-pencil-square me-1"></i> Sửa
+        </a>
+      <?php endif; ?>
     </div>
   </div>
   <div class="card-body">

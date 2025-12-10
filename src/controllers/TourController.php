@@ -9,11 +9,20 @@ class TourController
 
     public function index(): void
     {
-        $tours = Tour::all();
+        $currentUser = getCurrentUser();
+        
+        // Nếu là hướng dẫn viên, chỉ lấy tours được phân công
+        if ($currentUser && $currentUser->isGuide()) {
+            $tours = Tour::getAssignedTours($currentUser->id);
+            $pageTitle = 'Tour được phân công';
+        } else {
+            $tours = Tour::all();
+            $pageTitle = 'Danh sách Tour';
+        }
 
         view('admin.tours.index', [
-            'title' => 'Danh sách Tour',
-            'pageTitle' => 'Danh sách Tour',
+            'title' => $pageTitle,
+            'pageTitle' => $pageTitle,
             'tours' => $tours,
             'message' => $_GET['message'] ?? null,
             'messageType' => $_GET['type'] ?? 'success',
@@ -22,6 +31,9 @@ class TourController
 
     public function create(): void
     {
+        // Chỉ admin mới được tạo tour
+        requireAdmin();
+        
         view('admin.tours.create', [
             'title' => 'Thêm tour mới',
             'pageTitle' => 'Thêm tour mới',
@@ -30,6 +42,9 @@ class TourController
 
     public function store(): void
     {
+        // Chỉ admin mới được tạo tour
+        requireAdmin();
+        
         $data = $this->validate($_POST);
 
         if ($data['errors']) {
@@ -68,6 +83,9 @@ class TourController
 
     public function edit(): void
     {
+        // Chỉ admin mới được sửa tour
+        requireAdmin();
+        
         $id = $_GET['id'] ?? null;
         $tour = $id ? Tour::find($id) : null;
 
@@ -85,6 +103,9 @@ class TourController
 
     public function update(): void
     {
+        // Chỉ admin mới được sửa tour
+        requireAdmin();
+        
         $id = $_POST['id'] ?? null;
         $existingTour = $id ? Tour::find($id) : null;
 
@@ -114,6 +135,9 @@ class TourController
 
     public function destroy(): void
     {
+        // Chỉ admin mới được xóa tour
+        requireAdmin();
+        
         $id = $_POST['id'] ?? null;
         if (!$id) {
             $this->redirectWithMessage('tours', 'Tour không tồn tại', 'danger');
@@ -138,6 +162,102 @@ class TourController
         } else {
             $this->redirectWithMessage('tours', 'Không thể xóa tour này. Có thể tour đang được sử dụng ở nơi khác.', 'danger');
         }
+    }
+
+    // Xem danh sách khách hàng của tour
+    public function customers(): void
+    {
+        $id = $_GET['id'] ?? null;
+        $tour = $id ? Tour::find($id) : null;
+
+        if (!$tour) {
+            $this->redirectWithMessage('tours', 'Tour không tồn tại', 'danger');
+            return;
+        }
+
+        // Lấy danh sách customers từ bảng customer
+        $customers = Customer::getByTourId($id);
+
+        view('admin.tours.customers', [
+            'title' => 'Khách hàng - ' . htmlspecialchars($tour['name']),
+            'pageTitle' => 'Khách hàng',
+            'tour' => $tour,
+            'customers' => $customers,
+        ]);
+    }
+
+    // Viết nhật ký cho tour
+    public function diary(): void
+    {
+        $id = $_GET['id'] ?? null;
+        $tour = $id ? Tour::find($id) : null;
+
+        if (!$tour) {
+            $this->redirectWithMessage('tours', 'Tour không tồn tại', 'danger');
+            return;
+        }
+
+        // Lấy booking đầu tiên của tour (mỗi tour chỉ có 1 nhật ký)
+        $bookings = Booking::getByTourId($id);
+        $booking = !empty($bookings) ? $bookings[0] : null;
+        
+        // Nếu có POST thì cập nhật nhật ký
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $diary = trim($_POST['diary'] ?? '');
+
+            if ($booking) {
+                $bookingData = Booking::find($booking['id']);
+                if ($bookingData) {
+                    // Cập nhật nhật ký
+                    $updateData = [
+                        'tour_id' => $bookingData['tour_id'],
+                        'created_by' => $bookingData['created_by'],
+                        'assigned_guide_id' => $bookingData['assigned_guide_id'],
+                        'status' => $bookingData['status'],
+                        'start_date' => $bookingData['start_date'],
+                        'end_date' => $bookingData['end_date'],
+                        'schedule_detail' => $bookingData['schedule_detail'],
+                        'service_detail' => $bookingData['service_detail'],
+                        'diary' => $diary,
+                        'lists_file' => $bookingData['lists_file'],
+                        'notes' => $bookingData['notes'],
+                    ];
+                    
+                    if (Booking::update($booking['id'], $updateData)) {
+                        $this->redirectWithMessage('tour-diary&id=' . $id, 'Cập nhật nhật ký thành công');
+                        return;
+                    }
+                }
+            } else {
+                // Nếu chưa có booking, tạo booking mặc định để lưu nhật ký
+                $currentUser = getCurrentUser();
+                $newBookingData = [
+                    'tour_id' => $id,
+                    'created_by' => $currentUser ? $currentUser->id : null,
+                    'assigned_guide_id' => $currentUser && $currentUser->isGuide() ? $currentUser->id : null,
+                    'status' => null,
+                    'start_date' => null,
+                    'end_date' => null,
+                    'schedule_detail' => json_encode(new stdClass(), JSON_UNESCAPED_UNICODE),
+                    'service_detail' => json_encode(new stdClass(), JSON_UNESCAPED_UNICODE),
+                    'diary' => $diary,
+                    'lists_file' => json_encode(new stdClass(), JSON_UNESCAPED_UNICODE),
+                    'notes' => '',
+                ];
+                
+                if (Booking::create($newBookingData)) {
+                    $this->redirectWithMessage('tour-diary&id=' . $id, 'Tạo nhật ký thành công');
+                    return;
+                }
+            }
+        }
+
+        view('admin.tours.diary', [
+            'title' => 'Viết nhật ký - ' . htmlspecialchars($tour['name']),
+            'pageTitle' => 'Viết nhật ký',
+            'tour' => $tour,
+            'booking' => $booking,
+        ]);
     }
 
     private function validate(array $input): array

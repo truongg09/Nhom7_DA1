@@ -166,4 +166,29 @@ class Booking
         $stmt->execute(['booking_id' => $bookingId]);
         return $stmt->fetchAll() ?: [];
     }
+
+    /**
+     * Lấy danh sách bookings theo tour_id
+     * @param int $tourId ID của tour
+     * @return array Danh sách bookings
+     */
+    public static function getByTourId($tourId): array
+    {
+        $pdo = getDB();
+        if (!$pdo) {
+            return [];
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT b.*, t.name AS tour_name, u1.name AS created_by_name, u2.name AS assigned_guide_name
+             FROM bookings b
+             LEFT JOIN tours t ON b.tour_id = t.id
+             LEFT JOIN users u1 ON b.created_by = u1.id
+             LEFT JOIN users u2 ON b.assigned_guide_id = u2.id
+             WHERE b.tour_id = :tour_id
+             ORDER BY b.id ASC'
+        );
+        $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll() ?: [];
+    }
 }

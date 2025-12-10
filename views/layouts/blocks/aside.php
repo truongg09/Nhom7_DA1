@@ -28,31 +28,46 @@
         role="menu"
         data-accordion="false"
       >
-        <li class="nav-item">
-          <a href="<?= BASE_URL . 'dashboard' ?>" class="nav-link">
-            <i class="nav-icon bi bi-speedometer"></i>
-            <p>Dashboard</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="<?= BASE_URL . 'tours' ?>" class="nav-link">
-            <i class="nav-icon bi bi-airplane-engines"></i>
-            <p>Quản lý Tour</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="<?= BASE_URL . 'categories' ?>" class="nav-link">
-            <i class="nav-icon bi bi-tags"></i>
-            <p>Quản lý danh mục Tour</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="<?= BASE_URL . 'bookings' ?>" class="nav-link">
-            <i class="nav-icon bi bi-calendar-check"></i>
-            <p>Quản lý Booking</p>
-          </a>
-        </li>
-        <?php if (isAdmin()): ?>
+        <?php if (isGuide()): ?>
+          <!-- Menu cho hướng dẫn viên -->
+          <li class="nav-item">
+            <a href="<?= BASE_URL . 'home' ?>" class="nav-link">
+              <i class="nav-icon bi bi-house-door"></i>
+              <p>Trang chủ</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="<?= BASE_URL . 'tours' ?>" class="nav-link">
+              <i class="nav-icon bi bi-airplane-engines"></i>
+              <p>Tour được phân công</p>
+            </a>
+          </li>
+        <?php else: ?>
+          <!-- Menu cho admin -->
+          <li class="nav-item">
+            <a href="<?= BASE_URL . 'dashboard' ?>" class="nav-link">
+              <i class="nav-icon bi bi-speedometer"></i>
+              <p>Dashboard</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="<?= BASE_URL . 'tours' ?>" class="nav-link">
+              <i class="nav-icon bi bi-airplane-engines"></i>
+              <p>Quản lý Tour</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="<?= BASE_URL . 'categories' ?>" class="nav-link">
+              <i class="nav-icon bi bi-tags"></i>
+              <p>Quản lý danh mục Tour</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="<?= BASE_URL . 'bookings' ?>" class="nav-link">
+              <i class="nav-icon bi bi-calendar-check"></i>
+              <p>Quản lý Booking</p>
+            </a>
+          </li>
           <li class="nav-item">
             <a href="<?= BASE_URL . 'users' ?>" class="nav-link">
               <i class="nav-icon bi bi-people-fill"></i>

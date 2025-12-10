@@ -18,6 +18,7 @@ require_once __DIR__ . '/src/models/Tour.php';
 require_once __DIR__ . '/src/models/Category.php';
 require_once __DIR__ . '/src/models/Booking.php';
 require_once __DIR__ . '/src/models/TourStatus.php';
+require_once __DIR__ . '/src/models/Customer.php';
 
 // Nạp các file chứa controller
 require_once __DIR__ . '/src/controllers/HomeController.php';
@@ -61,6 +62,8 @@ match ($act) {
     'tour-edit' => (new TourController())->edit(),
     'tour-update' => (new TourController())->update(),
     'tour-delete' => (new TourController())->destroy(),
+    'tour-customers' => (new TourController())->customers(),
+    'tour-diary' => (new TourController())->diary(),
 
     // Quản lý danh mục tour
     'categories' => (new CategoryController())->index(),

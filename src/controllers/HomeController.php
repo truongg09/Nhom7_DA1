@@ -44,6 +44,13 @@ class HomeController
         // Yêu cầu phải đăng nhập
         requireLogin();
         
+        // Nếu là hướng dẫn viên, chuyển về trang home
+        $currentUser = getCurrentUser();
+        if ($currentUser && $currentUser->isGuide()) {
+            header('Location: ' . BASE_URL . 'home');
+            exit;
+        }
+        
         // Include file dashboard.php
         require_once __DIR__ . '/../../views/admin/dashboard.php';
     }

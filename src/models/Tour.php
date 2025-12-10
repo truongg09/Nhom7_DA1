@@ -137,5 +137,29 @@ class Tour
             return false;
         }
     }
+
+    /**
+     * Lấy danh sách tours được phân công cho hướng dẫn viên
+     * @param int $guideId ID của hướng dẫn viên
+     * @return array Danh sách tours được phân công
+     */
+    public static function getAssignedTours($guideId): array
+    {
+        $pdo = getDB();
+        if (!$pdo) {
+            return [];
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT DISTINCT t.*, c.name AS category_name
+             FROM tours t
+             LEFT JOIN categories c ON t.category_id = c.id
+             INNER JOIN bookings b ON b.tour_id = t.id
+             WHERE b.assigned_guide_id = :guide_id
+             ORDER BY t.id ASC'
+        );
+        $stmt->execute(['guide_id' => $guideId]);
+        return $stmt->fetchAll() ?: [];
+    }
 }
 

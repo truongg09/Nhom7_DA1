@@ -4,13 +4,15 @@ ob_start();
 
 <div class="card">
   <div class="card-header d-flex align-items-center">
-    <h3 class="card-title mb-0">Danh sách Tour</h3>
-    <div class="ms-auto">
-      <a href="<?= BASE_URL ?>tour-create" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>
-        Thêm Tour mới
-      </a>
-    </div>
+    <h3 class="card-title mb-0"><?= htmlspecialchars($pageTitle ?? 'Danh sách Tour') ?></h3>
+    <?php if (isAdmin()): ?>
+      <div class="ms-auto">
+        <a href="<?= BASE_URL ?>tour-create" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i>
+          Thêm Tour mới
+        </a>
+      </div>
+    <?php endif; ?>
   </div>
   <div class="card-body">
     <?php if (!empty($message)): ?>
@@ -132,20 +134,28 @@ ob_start();
                   </span>
                 </td>
                 <td><?= htmlspecialchars($tour['created_at']) ?></td>
-                <td style="width: 150px; white-space: nowrap;">
-                  <div class="d-flex justify-content-center align-items-center gap-2">
+                <td style="width: 200px; white-space: nowrap;">
+                  <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
                     <a href="<?= BASE_URL ?>tour-show&id=<?= urlencode($tour['id']) ?>" class="btn btn-sm btn-info" title="Xem chi tiết">
                       <i class="bi bi-eye"></i>
                     </a>
-                    <a href="<?= BASE_URL ?>tour-edit&id=<?= urlencode($tour['id']) ?>" class="btn btn-sm btn-warning" title="Sửa">
-                      <i class="bi bi-pencil-square"></i>
+                    <a href="<?= BASE_URL ?>tour-customers&id=<?= urlencode($tour['id']) ?>" class="btn btn-sm btn-primary" title="Khách hàng">
+                      <i class="bi bi-people"></i>
                     </a>
-                    <form action="<?= BASE_URL ?>tour-delete" method="POST" onsubmit="return confirm('Xác nhận xóa tour?');" class="m-0">
-                      <input type="hidden" name="id" value="<?= htmlspecialchars($tour['id']) ?>" />
-                      <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
+                    <a href="<?= BASE_URL ?>tour-diary&id=<?= urlencode($tour['id']) ?>" class="btn btn-sm btn-success" title="Viết nhật ký">
+                      <i class="bi bi-journal-text"></i>
+                    </a>
+                    <?php if (isAdmin()): ?>
+                      <a href="<?= BASE_URL ?>tour-edit&id=<?= urlencode($tour['id']) ?>" class="btn btn-sm btn-warning" title="Sửa">
+                        <i class="bi bi-pencil-square"></i>
+                      </a>
+                      <form action="<?= BASE_URL ?>tour-delete" method="POST" onsubmit="return confirm('Xác nhận xóa tour?');" class="m-0">
+                        <input type="hidden" name="id" value="<?= htmlspecialchars($tour['id']) ?>" />
+                        <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>
