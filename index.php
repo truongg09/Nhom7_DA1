@@ -82,6 +82,7 @@ match ($act) {
     'booking-edit' => (new BookingController())->edit(),
     'booking-update' => (new BookingController())->update(),
     'booking-delete' => (new BookingController())->destroy(),
+    'booking-diary' => (new BookingController())->diary(),
 
     // Quản lý người dùng
     'users'        => $userController->index(),

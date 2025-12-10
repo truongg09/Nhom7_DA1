@@ -11,22 +11,32 @@ class TourController
     {
         $currentUser = getCurrentUser();
         
-        // Nếu là hướng dẫn viên, chỉ lấy tours được phân công
+        // Nếu là hướng dẫn viên, lấy bookings được phân công
         if ($currentUser && $currentUser->isGuide()) {
-            $tours = Tour::getAssignedTours($currentUser->id);
+            $bookings = Booking::getByGuideId($currentUser->id);
+            $statuses = TourStatus::all();
             $pageTitle = 'Tour được phân công';
+            
+            view('hdv.tours.index', [
+                'title' => $pageTitle,
+                'pageTitle' => $pageTitle,
+                'bookings' => $bookings,
+                'statuses' => $statuses,
+                'message' => $_GET['message'] ?? null,
+                'messageType' => $_GET['type'] ?? 'success',
+            ]);
         } else {
             $tours = Tour::all();
             $pageTitle = 'Danh sách Tour';
+            
+            view('admin.tours.index', [
+                'title' => $pageTitle,
+                'pageTitle' => $pageTitle,
+                'tours' => $tours,
+                'message' => $_GET['message'] ?? null,
+                'messageType' => $_GET['type'] ?? 'success',
+            ]);
         }
-
-        view('admin.tours.index', [
-            'title' => $pageTitle,
-            'pageTitle' => $pageTitle,
-            'tours' => $tours,
-            'message' => $_GET['message'] ?? null,
-            'messageType' => $_GET['type'] ?? 'success',
-        ]);
     }
 
     public function create(): void
@@ -74,7 +84,10 @@ class TourController
             return;
         }
 
-        view('admin.tours.show', [
+        $currentUser = getCurrentUser();
+        $viewPath = ($currentUser && $currentUser->isGuide()) ? 'hdv.tours.show' : 'admin.tours.show';
+
+        view($viewPath, [
             'title' => 'Chi tiết tour',
             'pageTitle' => 'Chi tiết tour',
             'tour' => $tour,

@@ -10,11 +10,12 @@ class Booking
         }
 
         $stmt = $pdo->query(
-            'SELECT b.*, t.name AS tour_name, u1.name AS created_by_name, u2.name AS assigned_guide_name
+            'SELECT b.*, t.name AS tour_name, u1.name AS created_by_name, u2.name AS assigned_guide_name, c.name AS customer_name
              FROM bookings b
              LEFT JOIN tours t ON b.tour_id = t.id
              LEFT JOIN users u1 ON b.created_by = u1.id
              LEFT JOIN users u2 ON b.assigned_guide_id = u2.id
+             LEFT JOIN customer c ON b.customer_id = c.id
              ORDER BY b.id ASC'
         );
         return $stmt->fetchAll() ?: [];
@@ -28,11 +29,12 @@ class Booking
         }
 
         $stmt = $pdo->prepare(
-            'SELECT b.*, t.name AS tour_name, u1.name AS created_by_name, u2.name AS assigned_guide_name
+            'SELECT b.*, t.name AS tour_name, u1.name AS created_by_name, u2.name AS assigned_guide_name, c.name AS customer_name
              FROM bookings b
              LEFT JOIN tours t ON b.tour_id = t.id
              LEFT JOIN users u1 ON b.created_by = u1.id
              LEFT JOIN users u2 ON b.assigned_guide_id = u2.id
+             LEFT JOIN customer c ON b.customer_id = c.id
              WHERE b.id = :id'
         );
         $stmt->execute(['id' => $id]);
@@ -60,12 +62,13 @@ class Booking
             }
         }
 
-        $sql = 'INSERT INTO bookings (tour_id, created_by, assigned_guide_id, status, start_date, end_date, schedule_detail, service_detail, diary, lists_file, notes)
-                VALUES (:tour_id, :created_by, :assigned_guide_id, :status, :start_date, :end_date, :schedule_detail, :service_detail, :diary, :lists_file, :notes)';
+        $sql = 'INSERT INTO bookings (tour_id, customer_id, created_by, assigned_guide_id, status, start_date, end_date, schedule_detail, service_detail, diary, lists_file, notes)
+                VALUES (:tour_id, :customer_id, :created_by, :assigned_guide_id, :status, :start_date, :end_date, :schedule_detail, :service_detail, :diary, :lists_file, :notes)';
 
         $stmt = $pdo->prepare($sql);
         return $stmt->execute([
             'tour_id' => $data['tour_id'] ?: null,
+            'customer_id' => $data['customer_id'] ?? null,
             'created_by' => $data['created_by'] ?: null,
             'assigned_guide_id' => $data['assigned_guide_id'] ?: null,
             'status' => $data['status'] ?: null,
@@ -101,6 +104,7 @@ class Booking
 
         $sql = 'UPDATE bookings SET
                     tour_id = :tour_id,
+                    customer_id = :customer_id,
                     created_by = :created_by,
                     assigned_guide_id = :assigned_guide_id,
                     status = :status,
@@ -118,6 +122,7 @@ class Booking
         return $stmt->execute([
             'id' => $id,
             'tour_id' => $data['tour_id'] ?: null,
+            'customer_id' => $data['customer_id'] ?? null,
             'created_by' => $data['created_by'] ?: null,
             'assigned_guide_id' => $data['assigned_guide_id'] ?: null,
             'status' => $data['status'] ?: null,
@@ -180,15 +185,42 @@ class Booking
         }
 
         $stmt = $pdo->prepare(
-            'SELECT b.*, t.name AS tour_name, u1.name AS created_by_name, u2.name AS assigned_guide_name
+            'SELECT b.*, t.name AS tour_name, u1.name AS created_by_name, u2.name AS assigned_guide_name, c.name AS customer_name
              FROM bookings b
              LEFT JOIN tours t ON b.tour_id = t.id
              LEFT JOIN users u1 ON b.created_by = u1.id
              LEFT JOIN users u2 ON b.assigned_guide_id = u2.id
+             LEFT JOIN customer c ON b.customer_id = c.id
              WHERE b.tour_id = :tour_id
              ORDER BY b.id ASC'
         );
         $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll() ?: [];
+    }
+
+    /**
+     * Lấy danh sách bookings được phân công cho hướng dẫn viên
+     * @param int $guideId ID của hướng dẫn viên
+     * @return array Danh sách bookings
+     */
+    public static function getByGuideId($guideId): array
+    {
+        $pdo = getDB();
+        if (!$pdo) {
+            return [];
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT b.*, t.name AS tour_name, u1.name AS created_by_name, u2.name AS assigned_guide_name, c.name AS customer_name
+             FROM bookings b
+             LEFT JOIN tours t ON b.tour_id = t.id
+             LEFT JOIN users u1 ON b.created_by = u1.id
+             LEFT JOIN users u2 ON b.assigned_guide_id = u2.id
+             LEFT JOIN customer c ON b.customer_id = c.id
+             WHERE b.assigned_guide_id = :guide_id
+             ORDER BY b.id DESC'
+        );
+        $stmt->execute(['guide_id' => $guideId]);
         return $stmt->fetchAll() ?: [];
     }
 }

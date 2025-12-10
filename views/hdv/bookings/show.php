@@ -1,0 +1,250 @@
+<?php
+$booking = $booking ?? [];
+$statuses = $statuses ?? [];
+
+// Helper function để extract text từ giá trị có thể là JSON hoặc text thuần
+$extractText = static function ($val, $skipKey = null) {
+    if (empty($val)) {
+        return '';
+    }
+    $str = trim((string) $val);
+    if (empty($str)) {
+        return '';
+    }
+    
+    // Thử decode JSON
+    $decoded = json_decode($str, true);
+    
+    // Nếu decode thành công và là array/object
+    if ($decoded !== null && json_last_error() === JSON_ERROR_NONE) {
+        // Nếu có skipKey và object có key đó, chỉ lấy giá trị của key đó
+        if ($skipKey && is_array($decoded) && !isset($decoded[0]) && isset($decoded[$skipKey])) {
+            $value = $decoded[$skipKey];
+            if (is_array($value)) {
+                return implode("\n", array_map('strval', $value));
+            }
+            $result = (string) $value;
+            // Loại bỏ "raw: " nếu có ở đầu
+            $result = preg_replace('/^raw:\s*/i', '', $result);
+            return $result;
+        }
+        
+        // Nếu là object với key "raw", chỉ lấy giá trị của "raw" (không hiển thị "raw:")
+        if (is_array($decoded) && !isset($decoded[0]) && isset($decoded['raw']) && count($decoded) === 1) {
+            $value = $decoded['raw'];
+            if (is_array($value)) {
+                return implode("\n", array_map('strval', $value));
+            }
+            $result = (string) $value;
+            // Loại bỏ "raw: " nếu có ở đầu (xử lý nested)
+            $result = preg_replace('/^raw:\s*/i', '', $result);
+            return $result;
+        }
+        
+        // Nếu là object với nhiều key, convert thành text format (nhưng bỏ qua key "raw")
+        if (is_array($decoded) && !isset($decoded[0])) {
+            $lines = [];
+            foreach ($decoded as $key => $value) {
+                // Bỏ qua key "raw" khi hiển thị
+                if ($key === 'raw') {
+                    if (is_array($value)) {
+                        $valueStr = [];
+                        foreach ($value as $item) {
+                            if (is_array($item)) {
+                                $valueStr[] = json_encode($item, JSON_UNESCAPED_UNICODE);
+                            } else {
+                                $valueStr[] = (string) $item;
+                            }
+                        }
+                        $value = implode(', ', $valueStr);
+                    }
+                    $result = (string) $value;
+                    // Loại bỏ "raw: " nếu có ở đầu
+                    $result = preg_replace('/^raw:\s*/i', '', $result);
+                    return $result;
+                }
+                
+                if (is_array($value)) {
+                    $valueStr = [];
+                    foreach ($value as $item) {
+                        if (is_array($item)) {
+                            $valueStr[] = json_encode($item, JSON_UNESCAPED_UNICODE);
+                        } else {
+                            $valueStr[] = (string) $item;
+                        }
+                    }
+                    $value = implode(', ', $valueStr);
+                }
+                $lines[] = $key . ': ' . (string) $value;
+            }
+            return implode("\n", $lines);
+        }
+        
+        // Nếu là array, join thành text
+        if (is_array($decoded)) {
+            $lines = [];
+            foreach ($decoded as $item) {
+                if (is_array($item)) {
+                    $lines[] = json_encode($item, JSON_UNESCAPED_UNICODE);
+                } else {
+                    $lines[] = (string) $item;
+                }
+            }
+            return implode("\n", $lines);
+        }
+        
+        // Nếu là giá trị đơn giản
+        $result = (string) $decoded;
+        // Loại bỏ "raw: " nếu có ở đầu
+        $result = preg_replace('/^raw:\s*/i', '', $result);
+        return $result;
+    }
+    
+    // Nếu không phải JSON hoặc là text thuần thì loại bỏ "raw: " nếu có ở đầu
+    $result = $str;
+    // Loại bỏ "raw: " hoặc "raw: raw: " nếu có ở đầu (xử lý nested)
+    $result = preg_replace('/^(raw:\s*)+/i', '', $result);
+    return $result;
+};
+
+// Helper function để map status ID sang tên từ database
+$getStatusName = static function ($status) use ($statuses) {
+    if (empty($status)) {
+        return 'N/A';
+    }
+    
+    foreach ($statuses ?? [] as $statusItem) {
+        if ((string)$statusItem['id'] === (string)$status) {
+            return $statusItem['name'] ?? 'N/A';
+        }
+    }
+    
+    return (string) $status;
+};
+
+ob_start();
+?>
+
+<div class="card">
+  <div class="card-header d-flex align-items-center">
+    <h3 class="card-title mb-0">Chi tiết booking</h3>
+    <div class="d-flex gap-2 ms-auto">
+      <a href="<?= BASE_URL ?>tours" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Tour</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($booking['tour_name'] ?? 'N/A') ?></p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Người tạo</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($booking['created_by_name'] ?? 'N/A') ?></p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Hướng dẫn viên</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($booking['assigned_guide_name'] ?? 'Chưa phân công') ?></p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Trạng thái</label>
+        <p class="form-control-plaintext">
+          <span class="badge bg-info"><?= htmlspecialchars($getStatusName($booking['status'] ?? '')) ?></span>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Ngày bắt đầu</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($booking['start_date'] ?? 'N/A') ?></p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Ngày kết thúc</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($booking['end_date'] ?? 'N/A') ?></p>
+      </div>
+      <?php if (!empty($booking['schedule_detail'])): ?>
+        <div class="col-12">
+          <label class="form-label fw-bold">Chi tiết lịch trình</label>
+          <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['schedule_detail']))) ?></div>
+        </div>
+      <?php endif; ?>
+      <?php if (!empty($booking['service_detail'])): ?>
+        <div class="col-12">
+          <label class="form-label fw-bold">Chi tiết dịch vụ</label>
+          <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['service_detail']))) ?></div>
+        </div>
+      <?php endif; ?>
+      <?php if (!empty($booking['diary'])): ?>
+        <div class="col-12">
+          <label class="form-label fw-bold">Nhật ký</label>
+          <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['diary'], 'entries'))) ?></div>
+        </div>
+      <?php endif; ?>
+      <?php if (!empty($booking['lists_file'])): ?>
+        <div class="col-12">
+          <label class="form-label fw-bold">Danh sách file</label>
+          <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($extractText($booking['lists_file']))) ?></div>
+        </div>
+      <?php endif; ?>
+      <?php if (!empty($booking['notes'])): ?>
+        <div class="col-12">
+          <label class="form-label fw-bold">Ghi chú</label>
+          <div class="form-control-plaintext"><?= nl2br(htmlspecialchars($booking['notes'])) ?></div>
+        </div>
+      <?php endif; ?>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Ngày tạo</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($booking['created_at'] ?? '') ?></p>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-bold">Ngày cập nhật</label>
+        <p class="form-control-plaintext"><?= htmlspecialchars($booking['updated_at'] ?? '') ?></p>
+      </div>
+    </div>
+
+    <?php if (!empty($statusLogs)): ?>
+      <hr class="my-4" />
+      <h5 class="mb-3">Lịch sử thay đổi trạng thái</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+          <thead class="table-light">
+            <tr>
+              <th>Trạng thái cũ</th>
+              <th>Trạng thái mới</th>
+              <th>Người thay đổi</th>
+              <th>Ghi chú</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($statusLogs as $log): ?>
+              <tr>
+                <td><?= htmlspecialchars($getStatusName($log['old_status'] ?? '')) ?></td>
+                <td><?= htmlspecialchars($getStatusName($log['new_status'] ?? '')) ?></td>
+                <td><?= htmlspecialchars($log['changed_by_name'] ?? 'N/A') ?></td>
+                <td><?= htmlspecialchars($log['note'] ?? '') ?></td>
+                <td><?= htmlspecialchars($log['changed_at'] ?? '') ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php endif; ?>
+  </div>
+</div>
+
+<?php
+$content = ob_get_clean();
+
+view('layouts.AdminLayout', [
+    'title' => $title ?? 'Chi tiết booking',
+    'pageTitle' => $pageTitle ?? 'Chi tiết booking',
+    'content' => $content,
+    'breadcrumb' => [
+        ['label' => 'Trang chủ', 'url' => BASE_URL . 'home'],
+        ['label' => 'Tour được phân công', 'url' => BASE_URL . 'tours'],
+        ['label' => 'Chi tiết booking', 'url' => BASE_URL . 'booking-show?id=' . urlencode($booking['id'] ?? ''), 'active' => true],
+    ],
+]);
+?>
+

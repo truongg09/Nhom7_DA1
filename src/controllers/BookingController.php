@@ -80,7 +80,10 @@ class BookingController
         $statusLogs = Booking::getStatusLogs($id);
         $statuses = TourStatus::all();
 
-        view('admin.bookings.show', [
+        $currentUser = getCurrentUser();
+        $viewPath = ($currentUser && $currentUser->isGuide()) ? 'hdv.bookings.show' : 'admin.bookings.show';
+
+        view($viewPath, [
             'title' => 'Chi tiết booking',
             'pageTitle' => 'Chi tiết booking',
             'booking' => $booking,
@@ -174,6 +177,52 @@ class BookingController
         } else {
             $this->redirectWithMessage('bookings', 'Không thể xóa booking này. Có thể booking đang được sử dụng ở nơi khác.', 'danger');
         }
+    }
+
+    // Xem và viết nhật ký cho booking
+    public function diary(): void
+    {
+        $id = $_GET['id'] ?? null;
+        $booking = $id ? Booking::find($id) : null;
+
+        if (!$booking) {
+            $this->redirectWithMessage('bookings', 'Booking không tồn tại', 'danger');
+            return;
+        }
+
+        // Nếu có POST thì cập nhật nhật ký
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $diary = trim($_POST['diary'] ?? '');
+
+            $updateData = [
+                'tour_id' => $booking['tour_id'],
+                'customer_id' => $booking['customer_id'] ?? null,
+                'created_by' => $booking['created_by'],
+                'assigned_guide_id' => $booking['assigned_guide_id'],
+                'status' => $booking['status'],
+                'start_date' => $booking['start_date'],
+                'end_date' => $booking['end_date'],
+                'schedule_detail' => $booking['schedule_detail'],
+                'service_detail' => $booking['service_detail'],
+                'diary' => $diary,
+                'lists_file' => $booking['lists_file'],
+                'notes' => $booking['notes'],
+            ];
+            
+            if (Booking::update($id, $updateData)) {
+                $this->redirectWithMessage('booking-diary&id=' . $id, 'Cập nhật nhật ký thành công');
+                return;
+            }
+        }
+
+        $currentUser = getCurrentUser();
+        $viewPath = ($currentUser && $currentUser->isGuide()) ? 'hdv.bookings.diary' : 'admin.bookings.diary';
+
+        view($viewPath, [
+            'title' => 'Nhật ký - Booking #' . $id,
+            'pageTitle' => 'Nhật ký',
+            'booking' => $booking,
+        ]);
     }
 
     private function validate(array $input): array

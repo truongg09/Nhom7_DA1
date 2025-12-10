@@ -11,11 +11,6 @@ ob_start();
       <a href="<?= BASE_URL ?>tours" class="btn btn-secondary">
         <i class="bi bi-arrow-left me-1"></i> Quay lại
       </a>
-      <?php if (isAdmin()): ?>
-      <a href="<?= BASE_URL ?>tour-edit?id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-warning">
-        <i class="bi bi-pencil-square me-1"></i> Sửa
-      </a>
-      <?php endif; ?>
     </div>
   </div>
   <div class="card-body">
@@ -281,10 +276,9 @@ view('layouts.AdminLayout', [
     'content' => $content,
     'breadcrumb' => [
         ['label' => 'Trang chủ', 'url' => BASE_URL . 'home'],
-        ['label' => 'Quản lý tour', 'url' => BASE_URL . 'tours'],
+        ['label' => 'Tour được phân công', 'url' => BASE_URL . 'tours'],
         ['label' => 'Chi tiết tour', 'url' => BASE_URL . 'tour-show&id=' . urlencode($tour['id'] ?? ''), 'active' => true],
     ],
 ]);
 ?>
-
 
