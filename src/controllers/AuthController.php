@@ -61,14 +61,99 @@ class AuthController
             return;
         }
 
-        // Tạo user mẫu để đăng nhập (không kiểm tra database)
-        // Chỉ để demo giao diện
+        // Kiểm tra thông tin đăng nhập trong database
+        $pdo = getDB();
+        if (!$pdo) {
+            $errors[] = 'Không thể kết nối đến cơ sở dữ liệu';
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Tìm user theo email
+        try {
+            $stmt = $pdo->prepare('SELECT * FROM users WHERE email = :email LIMIT 1');
+            $stmt->execute(['email' => $email]);
+            $userData = $stmt->fetch();
+        } catch (PDOException $e) {
+            $errors[] = 'Có lỗi xảy ra khi kiểm tra thông tin đăng nhập';
+            error_log('Login error: ' . $e->getMessage());
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Kiểm tra user có tồn tại và mật khẩu đúng không
+        if (!$userData || empty($userData['password'])) {
+            $errors[] = 'Email hoặc mật khẩu không đúng';
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Kiểm tra mật khẩu
+        $passwordValid = false;
+        $storedPassword = $userData['password'] ?? '';
+        
+        // Kiểm tra xem mật khẩu có được hash không (password hash thường bắt đầu bằng $2y$ hoặc $2a$)
+        if (!empty($storedPassword) && (strpos($storedPassword, '$2y$') === 0 || strpos($storedPassword, '$2a$') === 0 || strpos($storedPassword, '$2b$') === 0)) {
+            // Mật khẩu đã được hash, sử dụng password_verify
+            $passwordValid = password_verify($password, $storedPassword);
+        } else {
+            // Mật khẩu chưa được hash (plain text) - so sánh trực tiếp (tạm thời để hỗ trợ migration)
+            // Lưu ý: Sau khi tất cả mật khẩu đã được hash, nên xóa phần này
+            $passwordValid = ($password === $storedPassword);
+            
+            // Nếu đăng nhập thành công với plain text, tự động hash và cập nhật lại database
+            if ($passwordValid && !empty($storedPassword)) {
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                $updateStmt = $pdo->prepare('UPDATE users SET password = :password WHERE id = :id');
+                $updateStmt->execute(['password' => $hashedPassword, 'id' => $userData['id']]);
+            }
+        }
+        
+        if (!$passwordValid) {
+            $errors[] = 'Email hoặc mật khẩu không đúng';
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Kiểm tra trạng thái tài khoản
+        if ((int)($userData['status'] ?? 0) !== 1) {
+            $errors[] = 'Tài khoản của bạn đã bị khóa';
+            view('auth.login', [
+                'title' => 'Đăng nhập',
+                'errors' => $errors,
+                'email' => $email,
+                'redirect' => $redirect,
+            ]);
+            return;
+        }
+
+        // Tạo đối tượng User với dữ liệu từ database (bao gồm role thực tế)
         $user = new User([
-            'id' => 1,
-            'name' => 'Người dùng mẫu',
-            'email' => $email,
-            'role' => 'huong_dan_vien',
-            'status' => 1,
+            'id' => $userData['id'],
+            'name' => $userData['name'],
+            'email' => $userData['email'],
+            'role' => $userData['role'], // Lấy role từ database
+            'status' => $userData['status'],
         ]);
 
         // Đăng nhập thành công: lưu vào session

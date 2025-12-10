@@ -9,7 +9,7 @@ class Category
             return [];
         }
 
-        $stmt = $pdo->query('SELECT * FROM categories ORDER BY created_at DESC');
+        $stmt = $pdo->query('SELECT * FROM categories ORDER BY id ASC');
         return $stmt->fetchAll() ?: [];
     }
 

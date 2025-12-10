@@ -24,10 +24,11 @@ ob_start();
     <?php include view_path('admin.categories.partials.form_fields'); ?>
   </div>
   <div class="card-footer d-flex justify-content-between">
-    <a href="<?= BASE_URL ?>categories" class="btn btn-secondary">Quay lại</a>
-    <button type="submit" class="btn btn-primary">
-      <i class="bi bi-save me-1"></i>
-      Lưu danh mục
+    <a href="<?= BASE_URL ?>categories" class="btn btn-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Quay lại
+    </a>
+    <button type="submit" class="btn btn-warning">
+      <i class="bi bi-save me-1"></i> Lưu danh mục
     </button>
   </div>
 </form>

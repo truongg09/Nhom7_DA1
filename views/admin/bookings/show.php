@@ -1,5 +1,6 @@
 <?php
 $booking = $booking ?? [];
+$statuses = $statuses ?? [];
 
 // Helper function để extract text từ giá trị có thể là JSON hoặc text thuần
 $extractText = static function ($val, $skipKey = null) {
@@ -22,13 +23,47 @@ $extractText = static function ($val, $skipKey = null) {
             if (is_array($value)) {
                 return implode("\n", array_map('strval', $value));
             }
-            return (string) $value;
+            $result = (string) $value;
+            // Loại bỏ "raw: " nếu có ở đầu
+            $result = preg_replace('/^raw:\s*/i', '', $result);
+            return $result;
         }
         
-        // Nếu là object với nhiều key, convert thành text format
+        // Nếu là object với key "raw", chỉ lấy giá trị của "raw" (không hiển thị "raw:")
+        if (is_array($decoded) && !isset($decoded[0]) && isset($decoded['raw']) && count($decoded) === 1) {
+            $value = $decoded['raw'];
+            if (is_array($value)) {
+                return implode("\n", array_map('strval', $value));
+            }
+            $result = (string) $value;
+            // Loại bỏ "raw: " nếu có ở đầu (xử lý nested)
+            $result = preg_replace('/^raw:\s*/i', '', $result);
+            return $result;
+        }
+        
+        // Nếu là object với nhiều key, convert thành text format (nhưng bỏ qua key "raw")
         if (is_array($decoded) && !isset($decoded[0])) {
             $lines = [];
             foreach ($decoded as $key => $value) {
+                // Bỏ qua key "raw" khi hiển thị
+                if ($key === 'raw') {
+                    if (is_array($value)) {
+                        $valueStr = [];
+                        foreach ($value as $item) {
+                            if (is_array($item)) {
+                                $valueStr[] = json_encode($item, JSON_UNESCAPED_UNICODE);
+                            } else {
+                                $valueStr[] = (string) $item;
+                            }
+                        }
+                        $value = implode(', ', $valueStr);
+                    }
+                    $result = (string) $value;
+                    // Loại bỏ "raw: " nếu có ở đầu
+                    $result = preg_replace('/^raw:\s*/i', '', $result);
+                    return $result;
+                }
+                
                 if (is_array($value)) {
                     $valueStr = [];
                     foreach ($value as $item) {
@@ -59,30 +94,32 @@ $extractText = static function ($val, $skipKey = null) {
         }
         
         // Nếu là giá trị đơn giản
-        return (string) $decoded;
+        $result = (string) $decoded;
+        // Loại bỏ "raw: " nếu có ở đầu
+        $result = preg_replace('/^raw:\s*/i', '', $result);
+        return $result;
     }
     
-    // Nếu không phải JSON hoặc là text thuần thì trả về nguyên văn
-    return $str;
+    // Nếu không phải JSON hoặc là text thuần thì loại bỏ "raw: " nếu có ở đầu
+    $result = $str;
+    // Loại bỏ "raw: " hoặc "raw: raw: " nếu có ở đầu (xử lý nested)
+    $result = preg_replace('/^(raw:\s*)+/i', '', $result);
+    return $result;
 };
 
-// Helper function để map status ID sang tên (nếu là số) hoặc giữ nguyên (nếu là text)
-$getStatusName = static function ($status) {
+// Helper function để map status ID sang tên từ database
+$getStatusName = static function ($status) use ($statuses) {
     if (empty($status)) {
         return 'N/A';
     }
     
-    // Nếu là số, map sang tên trạng thái
-    $statusMap = [
-        '1' => 'Đã xác nhận',
-        '2' => 'Đang xử lý',
-        '3' => 'Đã hoàn thành',
-        '4' => 'Đã hủy',
-        '5' => 'Chờ xác nhận',
-    ];
+    foreach ($statuses ?? [] as $statusItem) {
+        if ((string)$statusItem['id'] === (string)$status) {
+            return $statusItem['name'] ?? 'N/A';
+        }
+    }
     
-    $statusStr = (string) $status;
-    return $statusMap[$statusStr] ?? $statusStr;
+    return (string) $status;
 };
 
 ob_start();
@@ -91,14 +128,12 @@ ob_start();
 <div class="card">
   <div class="card-header d-flex align-items-center">
     <h3 class="card-title mb-0">Chi tiết booking</h3>
-    <div class="ms-auto">
-      <a href="<?= BASE_URL ?>bookings" class="btn btn-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>
-        Quay lại
+    <div class="d-flex gap-2 ms-auto">
+      <a href="<?= BASE_URL ?>bookings" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại
       </a>
-      <a href="<?= BASE_URL ?>booking-edit&id=<?= urlencode($booking['id'] ?? '') ?>" class="btn btn-warning btn-sm">
-        <i class="bi bi-pencil-square me-1"></i>
-        Sửa
+      <a href="<?= BASE_URL ?>booking-edit?id=<?= urlencode($booking['id'] ?? '') ?>" class="btn btn-warning">
+        <i class="bi bi-pencil-square me-1"></i> Sửa
       </a>
     </div>
   </div>
@@ -211,7 +246,7 @@ view('layouts.AdminLayout', [
     'breadcrumb' => [
         ['label' => 'Trang chủ', 'url' => BASE_URL . 'home'],
         ['label' => 'Quản lý Booking', 'url' => BASE_URL . 'bookings'],
-        ['label' => 'Chi tiết booking', 'url' => BASE_URL . 'booking-show&id=' . urlencode($booking['id'] ?? ''), 'active' => true],
+        ['label' => 'Chi tiết booking', 'url' => BASE_URL . 'booking-show?id=' . urlencode($booking['id'] ?? ''), 'active' => true],
     ],
 ]);
 

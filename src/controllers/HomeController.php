@@ -38,6 +38,16 @@ class HomeController
         ]);
     }
 
+    // Trang dashboard - báo cáo và thống kê
+    public function dashboard(): void
+    {
+        // Yêu cầu phải đăng nhập
+        requireLogin();
+        
+        // Include file dashboard.php
+        require_once __DIR__ . '/../../views/admin/dashboard.php';
+    }
+
     // Trang hiển thị khi route không tồn tại
     public function notFound(): void
     {

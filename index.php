@@ -17,6 +17,7 @@ require_once __DIR__ . '/src/models/User.php';
 require_once __DIR__ . '/src/models/Tour.php';
 require_once __DIR__ . '/src/models/Category.php';
 require_once __DIR__ . '/src/models/Booking.php';
+require_once __DIR__ . '/src/models/TourStatus.php';
 
 // Nạp các file chứa controller
 require_once __DIR__ . '/src/controllers/HomeController.php';
@@ -24,10 +25,14 @@ require_once __DIR__ . '/src/controllers/AuthController.php';
 require_once __DIR__ . '/src/controllers/TourController.php';
 require_once __DIR__ . '/src/controllers/CategoryController.php';
 require_once __DIR__ . '/src/controllers/BookingController.php';
+require_once __DIR__ . '/src/controllers/UserController.php';
+require_once __DIR__ . '/src/controllers/GuideController.php';
 
 // Khởi tạo các controller không yêu cầu quyền đặc biệt
 $homeController = new HomeController();
 $authController = new AuthController();
+$userController  = new UserController();
+$guideController = new GuideController();
 
 // Xác định route dựa trên tham số act (mặc định là trang chủ '/')
 $act = $_GET['act'] ?? '/';
@@ -39,6 +44,9 @@ match ($act) {
 
     // Trang home (cho người đã đăng nhập)
     'home' => $homeController->home(),
+
+    // Trang dashboard báo cáo & thống kê
+    'dashboard' => $homeController->dashboard(),
 
     // Đường dẫn đăng nhập, đăng xuất
     'login' => $authController->login(),
@@ -71,6 +79,23 @@ match ($act) {
     'booking-edit' => (new BookingController())->edit(),
     'booking-update' => (new BookingController())->update(),
     'booking-delete' => (new BookingController())->destroy(),
+
+    // Quản lý người dùng
+    'users'        => $userController->index(),
+    'user-create'  => $userController->create(),
+    'user-store'   => $userController->store(),
+    'user-edit'    => $userController->edit(),
+    'user-update'  => $userController->update(),
+    'user-delete'  => $userController->delete(),
+
+    // Quản lý HDV
+    'guides'        => $guideController->index(),
+    'guide-create'  => $guideController->create(),
+    'guide-store'   => $guideController->store(),
+    'guide-edit'    => $guideController->edit(),
+    'guide-update'  => $guideController->update(),
+    'guide-show'    => $guideController->show(),
+    'guide-delete'  => $guideController->delete(),
 
     // Đường dẫn không tồn tại
     default => $homeController->notFound(),

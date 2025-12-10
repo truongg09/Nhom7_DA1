@@ -10,11 +10,13 @@ class BookingController
     public function index(): void
     {
         $bookings = Booking::all();
+        $statuses = TourStatus::all();
 
         view('admin.bookings.index', [
             'title' => 'Danh sách Booking',
             'pageTitle' => 'Quản lý Booking',
             'bookings' => $bookings,
+            'statuses' => $statuses,
             'message' => $_GET['message'] ?? null,
             'messageType' => $_GET['type'] ?? 'success',
         ]);
@@ -24,12 +26,14 @@ class BookingController
     {
         $tours = Tour::all();
         $users = $this->getUsers();
+        $statuses = TourStatus::all();
 
         view('admin.bookings.create', [
             'title' => 'Thêm booking mới',
             'pageTitle' => 'Thêm booking mới',
             'tours' => $tours,
             'users' => $users,
+            'statuses' => $statuses,
         ]);
     }
 
@@ -40,6 +44,7 @@ class BookingController
         if ($data['errors']) {
             $tours = Tour::all();
             $users = $this->getUsers();
+            $statuses = TourStatus::all();
             view('admin.bookings.create', [
                 'title' => 'Thêm booking mới',
                 'pageTitle' => 'Thêm booking mới',
@@ -47,6 +52,7 @@ class BookingController
                 'old' => $data['fields'],
                 'tours' => $tours,
                 'users' => $users,
+                'statuses' => $statuses,
             ]);
             return;
         }
@@ -72,12 +78,14 @@ class BookingController
         }
 
         $statusLogs = Booking::getStatusLogs($id);
+        $statuses = TourStatus::all();
 
         view('admin.bookings.show', [
             'title' => 'Chi tiết booking',
             'pageTitle' => 'Chi tiết booking',
             'booking' => $booking,
             'statusLogs' => $statusLogs,
+            'statuses' => $statuses,
         ]);
     }
 
@@ -93,6 +101,7 @@ class BookingController
 
         $tours = Tour::all();
         $users = $this->getUsers();
+        $statuses = TourStatus::all();
 
         view('admin.bookings.edit', [
             'title' => 'Chỉnh sửa booking',
@@ -100,6 +109,7 @@ class BookingController
             'booking' => $booking,
             'tours' => $tours,
             'users' => $users,
+            'statuses' => $statuses,
         ]);
     }
 
@@ -118,6 +128,7 @@ class BookingController
         if ($data['errors']) {
             $tours = Tour::all();
             $users = $this->getUsers();
+            $statuses = TourStatus::all();
             view('admin.bookings.edit', [
                 'title' => 'Chỉnh sửa booking',
                 'pageTitle' => 'Chỉnh sửa booking',
@@ -125,6 +136,7 @@ class BookingController
                 'booking' => array_merge($data['fields'], ['id' => $id]),
                 'tours' => $tours,
                 'users' => $users,
+                'statuses' => $statuses,
             ]);
             return;
         }
@@ -213,6 +225,10 @@ class BookingController
         $user = getCurrentUser();
         $changedBy = $user ? $user->id : null;
 
+        // Lấy tên status từ database
+        $oldStatusName = TourStatus::getName($oldStatus) ?: $oldStatus;
+        $newStatusName = TourStatus::getName($newStatus) ?: $newStatus;
+
         $stmt = $pdo->prepare(
             'INSERT INTO booking_status_logs (booking_id, old_status, new_status, changed_by, note)
              VALUES (:booking_id, :old_status, :new_status, :changed_by, :note)'
@@ -222,7 +238,7 @@ class BookingController
             'old_status' => $oldStatus,
             'new_status' => $newStatus,
             'changed_by' => $changedBy,
-            'note' => 'Thay đổi trạng thái từ ' . $oldStatus . ' sang ' . $newStatus,
+            'note' => 'Thay đổi trạng thái từ ' . $oldStatusName . ' sang ' . $newStatusName,
         ]);
     }
 

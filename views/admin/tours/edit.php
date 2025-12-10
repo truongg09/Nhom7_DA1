@@ -25,10 +25,11 @@ ob_start();
     <?php include view_path('admin.tours.partials.form_fields'); ?>
   </div>
   <div class="card-footer d-flex justify-content-between">
-    <a href="<?= BASE_URL ?>tours" class="btn btn-secondary">Quay lại</a>
-    <button type="submit" class="btn btn-primary">
-      <i class="bi bi-save me-1"></i>
-      Cập nhật
+    <a href="<?= BASE_URL ?>tours" class="btn btn-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Quay lại
+    </a>
+    <button type="submit" class="btn btn-warning">
+      <i class="bi bi-save me-1"></i> Cập nhật
     </button>
   </div>
 </form>

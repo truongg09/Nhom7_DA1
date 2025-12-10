@@ -139,7 +139,8 @@ function requireAdmin()
     requireLogin();
     
     if (!isAdmin()) {
-        header('Location: ' . BASE_URL);
+        setFlash('error', 'Bạn không có quyền truy cập trang này. Chỉ quản trị viên mới có quyền.');
+        header('Location: ' . BASE_URL . 'home');
         exit;
     }
 }
@@ -153,4 +154,18 @@ function requireGuideOrAdmin()
         header('Location: ' . BASE_URL);
         exit;
     }
+}
+function setFlash($key, $message)
+{
+    startSession();
+    $_SESSION[$key] = $message;
+}
+
+function getFlash($key)
+{
+    startSession();
+    if (!isset($_SESSION[$key])) return null;
+    $msg = $_SESSION[$key];
+    unset($_SESSION[$key]); // Lấy xong thì xóa
+    return $msg;
 }

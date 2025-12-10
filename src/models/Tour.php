@@ -13,7 +13,7 @@ class Tour
             'SELECT t.*, c.name AS category_name
              FROM tours t
              LEFT JOIN categories c ON t.category_id = c.id
-             ORDER BY t.created_at DESC'
+             ORDER BY t.id ASC'
         );
         return $stmt->fetchAll() ?: [];
     }

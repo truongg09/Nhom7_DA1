@@ -23,6 +23,20 @@ ob_start();
         </div>
       </div>
       <div class="card-body">
+        <?php if ($msg = getFlash('error')): ?>
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <?= htmlspecialchars($msg) ?>
+          </div>
+        <?php endif; ?>
+        
+        <?php if ($msg = getFlash('success')): ?>
+          <div class="alert alert-success" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <?= htmlspecialchars($msg) ?>
+          </div>
+        <?php endif; ?>
+        
         <?php if (isLoggedIn()): ?>
           <div class="alert alert-success" role="alert">
             <h4 class="alert-heading">

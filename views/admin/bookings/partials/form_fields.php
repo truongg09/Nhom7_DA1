@@ -1,4 +1,5 @@
 <?php
+$statuses = $statuses ?? [];
 $value = static function ($key, $default = '') use ($old, $booking) {
     if (isset($old[$key])) {
         return $old[$key];
@@ -32,13 +33,47 @@ $extractText = static function ($val, $skipKey = null) {
             if (is_array($value)) {
                 return implode("\n", array_map('strval', $value));
             }
-            return (string) $value;
+            $result = (string) $value;
+            // Loại bỏ "raw: " nếu có ở đầu
+            $result = preg_replace('/^raw:\s*/i', '', $result);
+            return $result;
         }
         
-        // Nếu là object với nhiều key, convert thành text format
+        // Nếu là object với key "raw", chỉ lấy giá trị của "raw" (không hiển thị "raw:")
+        if (is_array($decoded) && !isset($decoded[0]) && isset($decoded['raw']) && count($decoded) === 1) {
+            $value = $decoded['raw'];
+            if (is_array($value)) {
+                return implode("\n", array_map('strval', $value));
+            }
+            $result = (string) $value;
+            // Loại bỏ "raw: " nếu có ở đầu (xử lý nested)
+            $result = preg_replace('/^raw:\s*/i', '', $result);
+            return $result;
+        }
+        
+        // Nếu là object với nhiều key, convert thành text format (nhưng bỏ qua key "raw")
         if (is_array($decoded) && !isset($decoded[0])) {
             $lines = [];
             foreach ($decoded as $key => $value) {
+                // Bỏ qua key "raw" khi hiển thị
+                if ($key === 'raw') {
+                    if (is_array($value)) {
+                        $valueStr = [];
+                        foreach ($value as $item) {
+                            if (is_array($item)) {
+                                $valueStr[] = json_encode($item, JSON_UNESCAPED_UNICODE);
+                            } else {
+                                $valueStr[] = (string) $item;
+                            }
+                        }
+                        $value = implode(', ', $valueStr);
+                    }
+                    $result = (string) $value;
+                    // Loại bỏ "raw: " nếu có ở đầu
+                    $result = preg_replace('/^raw:\s*/i', '', $result);
+                    return $result;
+                }
+                
                 if (is_array($value)) {
                     $valueStr = [];
                     foreach ($value as $item) {
@@ -69,47 +104,32 @@ $extractText = static function ($val, $skipKey = null) {
         }
         
         // Nếu là giá trị đơn giản
-        return (string) $decoded;
+        $result = (string) $decoded;
+        // Loại bỏ "raw: " nếu có ở đầu
+        $result = preg_replace('/^raw:\s*/i', '', $result);
+        return $result;
     }
     
-    // Nếu không phải JSON hoặc là text thuần thì trả về nguyên văn
-    return $str;
+    // Nếu không phải JSON hoặc là text thuần thì loại bỏ "raw: " nếu có ở đầu
+    $result = $str;
+    // Loại bỏ "raw: " hoặc "raw: raw: " nếu có ở đầu (xử lý nested)
+    $result = preg_replace('/^(raw:\s*)+/i', '', $result);
+    return $result;
 };
 
-// Helper function để map status ID sang tên
-$getStatusName = static function ($status) {
+// Helper function để map status ID sang tên từ database
+$getStatusName = static function ($status) use ($statuses) {
     if (empty($status)) {
         return '';
     }
     
-    $statusMap = [
-        '1' => 'Đã xác nhận',
-        '2' => 'Đang xử lý',
-        '3' => 'Đã hoàn thành',
-        '4' => 'Đã hủy',
-        '5' => 'Chờ xác nhận',
-    ];
-    
-    $statusStr = (string) $status;
-    return $statusMap[$statusStr] ?? $statusStr;
-};
-
-// Helper function để map status name về ID (ngược lại)
-$getStatusId = static function ($statusName) {
-    if (empty($statusName)) {
-        return '';
+    foreach ($statuses as $statusItem) {
+        if ((string)$statusItem['id'] === (string)$status) {
+            return $statusItem['name'] ?? '';
+        }
     }
     
-    $statusMap = [
-        'Đã xác nhận' => '1',
-        'Đang xử lý' => '2',
-        'Đã hoàn thành' => '3',
-        'Đã hủy' => '4',
-        'Chờ xác nhận' => '5',
-    ];
-    
-    $statusStr = trim((string) $statusName);
-    return $statusMap[$statusStr] ?? $statusStr;
+    return (string) $status;
 };
 ?>
 
@@ -153,11 +173,11 @@ $getStatusId = static function ($statusName) {
     <label class="form-label">Trạng thái</label>
     <select name="status" class="form-select">
       <option value="">-- Chọn trạng thái --</option>
-      <option value="1" <?= (string) $value('status') === '1' ? 'selected' : '' ?>>Đã xác nhận</option>
-      <option value="2" <?= (string) $value('status') === '2' ? 'selected' : '' ?>>Đang xử lý</option>
-      <option value="3" <?= (string) $value('status') === '3' ? 'selected' : '' ?>>Đã hoàn thành</option>
-      <option value="4" <?= (string) $value('status') === '4' ? 'selected' : '' ?>>Đã hủy</option>
-      <option value="5" <?= (string) $value('status') === '5' ? 'selected' : '' ?>>Chờ xác nhận</option>
+      <?php foreach ($statuses ?? [] as $statusItem): ?>
+        <option value="<?= htmlspecialchars($statusItem['id']) ?>" <?= (string) $value('status') === (string) $statusItem['id'] ? 'selected' : '' ?>>
+          <?= htmlspecialchars($statusItem['name']) ?>
+        </option>
+      <?php endforeach; ?>
     </select>
   </div>
   <div class="col-md-6">

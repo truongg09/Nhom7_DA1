@@ -25,10 +25,11 @@ ob_start();
     <?php include view_path('admin.bookings.partials.form_fields'); ?>
   </div>
   <div class="card-footer d-flex justify-content-between">
-    <a href="<?= BASE_URL ?>bookings" class="btn btn-secondary">Quay lại</a>
-    <button type="submit" class="btn btn-primary">
-      <i class="bi bi-save me-1"></i>
-      Cập nhật
+    <a href="<?= BASE_URL ?>bookings" class="btn btn-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Quay lại
+    </a>
+    <button type="submit" class="btn btn-warning">
+      <i class="bi bi-save me-1"></i> Cập nhật
     </button>
   </div>
 </form>
@@ -43,7 +44,7 @@ view('layouts.AdminLayout', [
     'breadcrumb' => [
         ['label' => 'Trang chủ', 'url' => BASE_URL . 'home'],
         ['label' => 'Quản lý Booking', 'url' => BASE_URL . 'bookings'],
-        ['label' => 'Chỉnh sửa booking', 'url' => BASE_URL . 'booking-edit&id=' . urlencode($booking['id'] ?? ''), 'active' => true],
+        ['label' => 'Chỉnh sửa booking', 'url' => BASE_URL . 'booking-edit?id=' . urlencode($booking['id'] ?? $old['id'] ?? ''), 'active' => true],
     ],
 ]);
 

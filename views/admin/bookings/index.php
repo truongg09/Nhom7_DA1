@@ -1,21 +1,18 @@
 <?php
-// Helper function để map status ID sang tên (nếu là số) hoặc giữ nguyên (nếu là text)
-$getStatusName = static function ($status) {
+$statuses = $statuses ?? [];
+// Helper function để map status ID sang tên từ database
+$getStatusName = static function ($status) use ($statuses) {
     if (empty($status)) {
         return 'N/A';
     }
     
-    // Nếu là số, map sang tên trạng thái
-    $statusMap = [
-        '1' => 'Đã xác nhận',
-        '2' => 'Đang xử lý',
-        '3' => 'Đã hoàn thành',
-        '4' => 'Đã hủy',
-        '5' => 'Chờ xác nhận',
-    ];
+    foreach ($statuses ?? [] as $statusItem) {
+        if ((string)$statusItem['id'] === (string)$status) {
+            return $statusItem['name'] ?? 'N/A';
+        }
+    }
     
-    $statusStr = (string) $status;
-    return $statusMap[$statusStr] ?? $statusStr;
+    return (string) $status;
 };
 
 ob_start();
@@ -72,10 +69,10 @@ ob_start();
                 <td><?= htmlspecialchars($booking['end_date'] ?? 'N/A') ?></td>
                 <td><?= htmlspecialchars($booking['created_at'] ?? '') ?></td>
                 <td class="d-flex justify-content-center gap-2">
-                  <a href="<?= BASE_URL ?>booking-show&id=<?= urlencode($booking['id']) ?>" class="btn btn-sm btn-info" title="Xem chi tiết">
+                  <a href="<?= BASE_URL ?>booking-show?id=<?= urlencode($booking['id']) ?>" class="btn btn-sm btn-info" title="Xem chi tiết">
                     <i class="bi bi-eye"></i>
                   </a>
-                  <a href="<?= BASE_URL ?>booking-edit&id=<?= urlencode($booking['id']) ?>" class="btn btn-sm btn-warning" title="Sửa">
+                  <a href="<?= BASE_URL ?>booking-edit?id=<?= urlencode($booking['id']) ?>" class="btn btn-sm btn-warning" title="Sửa">
                     <i class="bi bi-pencil-square"></i>
                   </a>
                   <form action="<?= BASE_URL ?>booking-delete" method="POST" onsubmit="return confirm('Xác nhận xóa booking?');">

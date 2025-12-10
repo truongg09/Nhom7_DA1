@@ -7,14 +7,12 @@ ob_start();
 <div class="card">
   <div class="card-header d-flex align-items-center">
     <h3 class="card-title mb-0">Chi tiết tour</h3>
-    <div class="ms-auto">
-      <a href="<?= BASE_URL ?>tours" class="btn btn-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>
-        Quay lại
+    <div class="d-flex gap-2 ms-auto">
+      <a href="<?= BASE_URL ?>tours" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Quay lại
       </a>
-      <a href="<?= BASE_URL ?>tour-edit&id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-warning btn-sm">
-        <i class="bi bi-pencil-square me-1"></i>
-        Sửa
+      <a href="<?= BASE_URL ?>tour-edit?id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-warning">
+        <i class="bi bi-pencil-square me-1"></i> Sửa
       </a>
     </div>
   </div>

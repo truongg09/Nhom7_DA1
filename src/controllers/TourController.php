@@ -42,8 +42,8 @@ class TourController
             return;
         }
 
-        // Set images thành empty string
-        $data['fields']['images'] = '';
+        // Set images thành JSON rỗng để thỏa constraint JSON trong DB
+        $data['fields']['images'] = json_encode([], JSON_UNESCAPED_UNICODE);
 
         Tour::create($data['fields']);
         $this->redirectWithMessage('tours', 'Thêm tour thành công');
@@ -105,8 +105,8 @@ class TourController
             return;
         }
 
-        // Giữ nguyên ảnh cũ (không xử lý upload nữa)
-        $data['fields']['images'] = $existingTour['images'] ?? '';
+        // Giữ nguyên ảnh cũ (không xử lý upload), nếu trống thì set JSON rỗng
+        $data['fields']['images'] = $existingTour['images'] ?? json_encode([], JSON_UNESCAPED_UNICODE);
 
         Tour::update($id, $data['fields']);
         $this->redirectWithMessage('tours', 'Cập nhật tour thành công');

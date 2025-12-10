@@ -29,7 +29,7 @@
         data-accordion="false"
       >
         <li class="nav-item">
-          <a href="<?= BASE_URL . 'home' ?>" class="nav-link">
+          <a href="<?= BASE_URL . 'dashboard' ?>" class="nav-link">
             <i class="nav-icon bi bi-speedometer"></i>
             <p>Dashboard</p>
           </a>
@@ -52,40 +52,18 @@
             <p>Quản lý Booking</p>
           </a>
         </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link">
-            <i class="nav-icon bi bi-people-fill"></i>
-            <p>
-              Quản lý Khách hàng
-              <i class="nav-arrow bi bi-chevron-right"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="#" class="nav-link">
-                <i class="nav-icon bi bi-circle"></i>
-                <p>Danh sách Khách hàng</p>
-              </a>
-            </li>
-          </ul>
-        </li>
         <?php if (isAdmin()): ?>
           <li class="nav-item">
-            <a href="#" class="nav-link">
-              <i class="nav-icon bi bi-person-gear"></i>
-              <p>
-                Quản lý Người dùng
-                <i class="nav-arrow bi bi-chevron-right"></i>
-              </p>
+            <a href="<?= BASE_URL . 'users' ?>" class="nav-link">
+              <i class="nav-icon bi bi-people-fill"></i>
+              <p>Quản lý tài khoản</p>
             </a>
-            <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon bi bi-circle"></i>
-                  <p>Danh sách Người dùng</p>
-                </a>
-              </li>
-            </ul>
+          </li>
+          <li class="nav-item">
+            <a href="<?= BASE_URL . 'guides' ?>" class="nav-link">
+              <i class="nav-icon bi bi-person-video3"></i>
+              <p>Quản lý HDV</p>
+            </a>
           </li>
         <?php endif; ?>
         <li class="nav-header">HỆ THỐNG</li>

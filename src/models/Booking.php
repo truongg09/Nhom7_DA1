@@ -15,7 +15,7 @@ class Booking
              LEFT JOIN tours t ON b.tour_id = t.id
              LEFT JOIN users u1 ON b.created_by = u1.id
              LEFT JOIN users u2 ON b.assigned_guide_id = u2.id
-             ORDER BY b.created_at DESC'
+             ORDER BY b.id ASC'
         );
         return $stmt->fetchAll() ?: [];
     }
@@ -47,6 +47,19 @@ class Booking
             return false;
         }
 
+        // Đảm bảo các trường JSON hợp lệ
+        foreach (['schedule_detail', 'service_detail', 'diary', 'lists_file'] as $jsonField) {
+            $raw = $data[$jsonField] ?? '';
+            if ($raw === '' || $raw === null) {
+                $data[$jsonField] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
+            } else {
+                $decoded = json_decode($raw, true);
+                if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+                    $data[$jsonField] = json_encode(['raw' => $raw], JSON_UNESCAPED_UNICODE);
+                }
+            }
+        }
+
         $sql = 'INSERT INTO bookings (tour_id, created_by, assigned_guide_id, status, start_date, end_date, schedule_detail, service_detail, diary, lists_file, notes)
                 VALUES (:tour_id, :created_by, :assigned_guide_id, :status, :start_date, :end_date, :schedule_detail, :service_detail, :diary, :lists_file, :notes)';
 
@@ -71,6 +84,19 @@ class Booking
         $pdo = getDB();
         if (!$pdo) {
             return false;
+        }
+
+        // Đảm bảo các trường JSON hợp lệ
+        foreach (['schedule_detail', 'service_detail', 'diary', 'lists_file'] as $jsonField) {
+            $raw = $data[$jsonField] ?? '';
+            if ($raw === '' || $raw === null) {
+                $data[$jsonField] = json_encode(new stdClass(), JSON_UNESCAPED_UNICODE);
+            } else {
+                $decoded = json_decode($raw, true);
+                if ($decoded === null && json_last_error() !== JSON_ERROR_NONE) {
+                    $data[$jsonField] = json_encode(['raw' => $raw], JSON_UNESCAPED_UNICODE);
+                }
+            }
         }
 
         $sql = 'UPDATE bookings SET
